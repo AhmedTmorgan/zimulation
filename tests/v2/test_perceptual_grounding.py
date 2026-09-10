@@ -1,8 +1,8 @@
 """Perceptual grounding of the active open-ended agent.
 
 The scientific baseline must not gain perfect object identity from Python.
-An organism may classify what it currently sees or handles, but continuity
-of an individual object is not supplied by the host runtime.
+An organism may bind references inside one currently perceived scene, but
+continuity across scenes is not supplied by the host runtime.
 
     python -m tests.v2.test_perceptual_grounding
 """
@@ -54,7 +54,7 @@ def test_active_cognition_never_calls_python_id_for_an_object():
 def test_a_nearby_thing_is_not_touched_for_free():
     e = Engine(2, 10)
     a = e.add(_land(e), 25.0)
-    a._terrain = e.terrain
+    a._begin_scene(e.terrain)
     stone = _thing(a)
     a.kind(stone, 0)
     seen_features = set().union(*(set(c.stats) for c in a.concepts.items))
@@ -66,7 +66,7 @@ def test_a_nearby_thing_is_not_touched_for_free():
 def test_handling_can_add_information_that_sight_did_not_supply():
     e = Engine(3, 10)
     a = e.add(_land(e), 25.0)
-    a._terrain = e.terrain
+    a._begin_scene(e.terrain)
     stone = _thing(a)
     a.kind(stone, 0)
     done = a._act("grasp", [stone], e.terrain, 1)
@@ -76,16 +76,41 @@ def test_handling_can_add_information_that_sight_did_not_supply():
     assert "edge_felt" in features
 
 
-def test_reencounter_is_new_evidence_not_a_perfect_pointer_lookup():
+def test_internal_references_do_not_multiply_one_sensory_sample():
     e = Engine(4, 10)
     a = e.add(_land(e), 25.0)
-    a._terrain = e.terrain
+    a._begin_scene(e.terrain)
     stone = _thing(a)
     a.kind(stone, 0)
     n0 = sum(c.n for c in a.concepts.items)
+    a.kind(stone, 0)
+    a.kind(stone, 0)
+    n1 = sum(c.n for c in a.concepts.items)
+    assert n1 == n0, "one scene was counted repeatedly as new evidence"
+
+
+def test_a_new_scene_requires_new_perceptual_evidence():
+    e = Engine(5, 10)
+    a = e.add(_land(e), 25.0)
+    stone = _thing(a)
+    a._begin_scene(e.terrain)
+    a.kind(stone, 0)
+    n0 = sum(c.n for c in a.concepts.items)
+    a._begin_scene(e.terrain)
     a.kind(stone, 1)
     n1 = sum(c.n for c in a.concepts.items)
-    assert n1 > n0, "re-encounter returned a cached host-object label"
+    assert n1 > n0, "a new encounter inherited a persistent host pointer"
+
+
+def test_scene_binding_is_discarded_between_turns():
+    e = Engine(6, 10)
+    a = e.add(_land(e), 25.0)
+    stone = _thing(a)
+    a._begin_scene(e.terrain)
+    a.kind(stone, 0)
+    assert a._scene_labels
+    a._begin_scene(e.terrain)
+    assert not a._scene_labels
 
 
 def _run_all():
