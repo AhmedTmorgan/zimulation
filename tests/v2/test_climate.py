@@ -125,6 +125,19 @@ def test_seasonal_ranges_follow_continental_climates_across_latitudes():
         assert low < swing < high, f"{lat} deg: {swing:.1f} K"
 
 
+def test_latitude_follows_the_ground_between_places():
+    """A degree of latitude is about 111 km: a map a few kilometres across
+    lies at one latitude. The first version spread every map over a
+    declared eight degrees whatever its size."""
+    from zimulation.core.rng import Streams
+    from zimulation.world.space import Terrain
+    terr = Terrain(16, Streams(1).get("t"))
+    span = math.degrees(CL.latitude_of(terr, terr.at(0, 15))
+                        - CL.latitude_of(terr, terr.at(0, 0)))
+    expected = 15 * terr.cell_size_m / R.get("meters_per_degree_latitude")
+    assert abs(span - expected) < 1e-9 and span < 0.05, span
+
+
 def test_the_day_night_range_is_what_was_declared():
     lat = math.radians(45)
     diurnal = []

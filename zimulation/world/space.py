@@ -55,8 +55,10 @@ class Cell:
         self.water_fraction = water_fraction
         self.vegetation_kg_m2 = vegetation_kg_m2
         self.rock_exposure = rock_exposure
-        #: ground moisture, distinct from standing water: it is what makes
-        #: fuel lying here damp, and therefore what makes combustion hard
+        #: ground moisture, distinct from standing water: what plants draw
+        #: on. Fuel lying here is wetted by rain and dried by the air on its
+        #: own timelag (world.ecology); tying it to this, which stays
+        #: saturated much of the year, left dry grass unburnable most days
         self.moisture = water_fraction
         self.temperature_k = R.get("ambient_temperature")
         self.things = []
@@ -72,7 +74,9 @@ class Terrain:
 
     The generator is deliberately simple: smoothed noise for elevation,
     water pooling in low ground, soil accumulating where it is flat and
-    low, vegetation following soil and moisture. It is not a geological
+    low. Vegetation is not made here: world.ecology grows it (the
+    first version of this docstring said it followed soil and moisture,
+    and every cell was given none). It is not a geological
     model and does not pretend to be. What it has to deliver is a world
     with places that differ from one another, so that moving is worth
     something and so that local knowledge is genuinely partial.

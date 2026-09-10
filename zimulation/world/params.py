@@ -210,10 +210,12 @@ R.declare("map_centre_latitude_degrees", "P", "degrees", 45.0, -70.0, 70.0,
           "a scenario choice, varied across experiments",
           ["world.climate"])
 
-R.declare("map_latitude_span_degrees", "P", "degrees", 8.0, 0.5, 40.0,
-          "latitude covered from the south edge of the map to the north, "
-          "so that migration can actually change the climate experienced",
-          "+/-100%", ["world.climate"])
+R.declare("meters_per_degree_latitude", "P", "m", 111195.0, 110500.0,
+          111700.0,
+          "length of one degree of latitude on a sphere of the Earth's mean "
+          "radius, 6371 km. Replaces a declared eight-degree span that took "
+          "no account of the map's size", "+/-0.5% with latitude on the "
+          "real ellipsoid", ["world.climate"])
 
 R.declare("solar_constant_w_m2", "P", "W m^-2", 1361.0, 1355.0, 1367.0,
           "total solar irradiance at one astronomical unit (Kopp & Lean "
@@ -371,3 +373,141 @@ R.declare("sound_audible_distance", "P", "m", 200.0, 20.0, 2000.0,
           "distance at which a loud human vocalisation remains audible "
           "above ambient noise in open terrain",
           "+/-100% with terrain and wind", ["world.space"])
+
+# ---------------------------------------------------------------- ecology
+R.declare("plant_growth_base_temperature_k", "B", "K", 278.15, 273.15,
+          283.15,
+          "base temperature for temperate plant growth, 5 C, as used in "
+          "growing-degree-day models (McMaster & Wilhelm 1997, "
+          "Agricultural and Forest Meteorology 87:291)", "+/-3 K",
+          ["world.ecology"])
+
+R.declare("vegetation_max_kg_m2", "P", "kg m^-2", 1.6, 0.2, 6.0,
+          "standing plant biomass at the deepest soil, that of temperate "
+          "grassland; woodland carries several times more (Whittaker & "
+          "Likens 1975, Primary Productivity of the Biosphere)",
+          "+/-100%", ["world.ecology"])
+
+R.declare("tuber_capacity_kg", "N", "kg", 4.0, 0.5, 50.0,
+          "modelling choice: edible storage organs within reach of one spot "
+          "in a cell of the deepest soil -- an abstraction of search, so "
+          "that a patch is soon dug out and moving on is worth something",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("tuber_regrowth_per_day", "N", "d^-1", 0.03, 0.001, 0.3,
+          "modelling choice: fraction of a patch's shortfall regrown per "
+          "day of full growing weather, so a dug patch recovers over one "
+          "to two months", "order of magnitude", ["world.ecology"])
+
+R.declare("tuber_item_kg", "N", "kg", 0.2, 0.05, 1.0,
+          "modelling choice: typical mass of one wild tuber; wild edible "
+          "tubers run from tens of grams to over a kilogram (e.g. Vincent "
+          "1985, World Archaeology 17:131)", "order of magnitude",
+          ["world.ecology"])
+
+R.declare("stick_cap", "N", "items", 6.0, 0.0, 50.0,
+          "modelling choice: fallen sticks within reach at the deepest "
+          "soil", "order of magnitude", ["world.ecology"])
+
+R.declare("stick_item_kg", "N", "kg", 0.3, 0.05, 3.0,
+          "modelling choice: mass of a fallen stick", "order of magnitude",
+          ["world.ecology"])
+
+R.declare("stick_length_m", "N", "m", 0.8, 0.2, 3.0,
+          "modelling choice: length of a fallen stick", "order of magnitude",
+          ["world.ecology"])
+
+R.declare("grass_cap", "N", "items", 6.0, 0.0, 50.0,
+          "modelling choice: handfuls of dry grass within reach at the "
+          "deepest soil", "order of magnitude", ["world.ecology"])
+
+R.declare("grass_item_kg", "N", "kg", 0.02, 0.002, 0.2,
+          "modelling choice: mass of a handful of dry grass",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("grass_length_m", "N", "m", 0.3, 0.05, 1.0,
+          "modelling choice: length of a handful of dry grass",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("bark_cap", "N", "items", 2.0, 0.0, 20.0,
+          "modelling choice: loose strips of bark within reach at the "
+          "deepest soil", "order of magnitude", ["world.ecology"])
+
+R.declare("bark_item_kg", "N", "kg", 0.02, 0.002, 0.2,
+          "modelling choice: mass of a strip of bark", "order of magnitude",
+          ["world.ecology"])
+
+R.declare("bark_length_m", "N", "m", 0.8, 0.1, 3.0,
+          "modelling choice: length of a strip of bark",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("litter_regrowth_per_day", "N", "d^-1", 0.1, 0.001, 1.0,
+          "modelling choice: fraction of the shortfall of fallen wood, dry "
+          "grass and bark restored per day", "order of magnitude",
+          ["world.ecology"])
+
+R.declare("fuel_timelag_reference_s", "P", "s", 3600.0, 1800.0, 7200.0,
+          "the one-hour timelag of fine dead fuel: time to come about "
+          "two-thirds of the way to equilibrium moisture (Deeming, Burgan "
+          "& Cohen 1977, National Fire-Danger Rating System)", "+/-50%",
+          ["world.ecology"])
+
+R.declare("fuel_timelag_reference_diameter_m", "P", "m", 0.003, 0.001,
+          0.0064,
+          "diameter typical of one-hour fuels, which are thinner than 0.64 "
+          "cm (Deeming et al. 1977); timelag grows with diameter squared, "
+          "as diffusion does (Fosberg 1970)", "+/-50%", ["world.ecology"])
+
+R.declare("rock_exposure_threshold", "S", "dimensionless", 0.5, 0.0, 1.0,
+          "modelling choice: rock exposure above which loose stones lie "
+          "about", "modelling choice", ["world.ecology"])
+
+R.declare("flint_cell_fraction", "S", "dimensionless", 0.25, 0.0, 1.0,
+          "modelling choice: share of rocky places that carry flint; a "
+          "geological condition drawn once when the world is made",
+          "modelling choice", ["world.ecology"])
+
+R.declare("cobble_cap", "N", "items", 3.0, 0.0, 20.0,
+          "modelling choice: loose cobbles within reach on rocky ground",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("cobble_kg", "N", "kg", 0.8, 0.1, 5.0,
+          "modelling choice: mass of a hand-sized cobble",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("cobble_length_m", "N", "m", 0.12, 0.05, 0.4,
+          "modelling choice: size of a hand-sized cobble",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("nodule_cap", "N", "items", 3.0, 0.0, 20.0,
+          "modelling choice: loose flint nodules within reach where flint "
+          "occurs", "order of magnitude", ["world.ecology"])
+
+R.declare("nodule_kg", "N", "kg", 0.6, 0.1, 5.0,
+          "modelling choice: mass of a flint nodule", "order of magnitude",
+          ["world.ecology"])
+
+R.declare("nodule_length_m", "N", "m", 0.12, 0.05, 0.4,
+          "modelling choice: size of a flint nodule", "order of magnitude",
+          ["world.ecology"])
+
+R.declare("stone_exposure_per_day", "N", "items d^-1", 0.2, 0.0, 5.0,
+          "modelling choice: loose stones come to hand again per day where "
+          "some have been taken", "order of magnitude", ["world.ecology"])
+
+R.declare("water_pool_kg", "N", "kg", 1000.0, 10.0, 1.0e6,
+          "modelling choice: water within reach at a shore, kept topped up "
+          "because at this scale standing water is not drunk dry",
+          "order of magnitude", ["world.ecology"])
+
+R.declare("dead_fuel_equilibrium_moisture", "P", "kg kg^-1", 0.12, 0.04, 0.25,
+          "moisture that dead fine fuel settles to in temperate air between "
+          "rains, typically 8 to 20 percent with humidity (Simard 1968, "
+          "Canadian Forest Fire Research Institute report FF-X-14; the "
+          "equilibrium moisture of fire-danger rating)", "+/-0.05",
+          ["world.ecology"])
+
+R.declare("rain_hours_per_wet_day", "N", "h", 4.0, 0.5, 24.0,
+          "modelling choice: hours of rain on a wet day, during which fuel "
+          "lying out wets toward what it can hold", "order of magnitude",
+          ["world.ecology"])

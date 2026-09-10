@@ -177,21 +177,29 @@ def temperature_at(tick, cell, latitude_rad, stream=None):
     return t
 
 
+def rain_mean_m(tick, cell, latitude_rad):
+    """
+    Expected water arriving on a cell in a day, as a depth in metres.
+
+    Warm air holds more water, so precipitation follows the sun, and high
+    ground wrings more out of what passes over it.
+    """
+    warmth = max(0.0, insolation(tick, latitude_rad))
+    orographic = 1.0 + cell.elevation_m * R.get("orographic_gain_per_m")
+    return R.get("mean_precipitation_m_per_day") * warmth * orographic
+
+
 def precipitation(tick, cell, latitude_rad, stream):
     """
     Water arriving on a cell this step, as a depth in metres.
 
-    Warm air holds more water, so precipitation follows temperature, and
-    high ground wrings more out of what passes over it. The consequence
-    that matters is downstream: rain raises ground moisture, and ground
-    moisture is what makes fuel too damp to burn.
+    Rain is episodic, not a trickle: most days dry, some days wet. The
+    consequence that matters is downstream: rain raises ground moisture,
+    and ground moisture is what makes fuel too damp to burn.
     """
-    warmth = max(0.0, insolation(tick, latitude_rad))
-    orographic = 1.0 + cell.elevation_m * R.get("orographic_gain_per_m")
-    mean = R.get("mean_precipitation_m_per_day") * warmth * orographic
+    mean = rain_mean_m(tick, cell, latitude_rad)
     if mean <= 0.0:
         return 0.0
-    # Rain is episodic, not a trickle: most days dry, some days wet.
     if stream.random() > R.get("rain_day_fraction"):
         return 0.0
     return stream.expovariate(1.0 / (mean / R.get("rain_day_fraction")))
@@ -215,16 +223,52 @@ def update_moisture(cell, rain_m, temperature_k, dt_s):
     return cell.moisture
 
 
+def daily_mean_k(tick, cell, latitude_rad):
+    """Mean air temperature of a cell over the day starting at tick,
+    without weather: the daily cycle averages out."""
+    t = annual_mean_k(latitude_rad) + seasonal_anomaly_k(tick + DAY // 2,
+                                                         latitude_rad)
+    return t - cell.elevation_m * R.get("lapse_rate_k_per_m")
+
+
+def step_day(terrain, tick, stream):
+    """
+    One day of weather on every cell: its mean temperature, and ground
+    moisture after rain and evaporation.
+
+    Weather is regional. The map is a few kilometres across, so one day's
+    warmth anomaly and one rain event cover all of it, and amounts differ
+    only as the sun and the height of the ground do; drawing each cell's
+    weather separately would have made neighbouring patches of ground
+    live under different skies. Returns the day's rain on each cell, in
+    metres, keyed by (x, y).
+    """
+    anomaly = stream.gauss(0.0, R.get("weather_noise_k"))
+    frac = R.get("rain_day_fraction")
+    burst = (stream.expovariate(1.0) / frac
+             if stream.random() <= frac else 0.0)
+    rain = {}
+    for c in terrain.all_cells():
+        lat = latitude_of(terrain, c)
+        c.temperature_k = daily_mean_k(tick, c, lat) + anomaly
+        amount = rain_mean_m(tick, c, lat) * burst
+        rain[(c.x, c.y)] = amount
+        update_moisture(c, amount, c.temperature_k, DAY)
+    return rain
+
+
 def latitude_of(terrain, cell):
     """
     Latitude of a cell in radians.
 
-    The map spans a band of latitude, so north and south differ. Without
-    this every place has the same seasons and there is nowhere to migrate
-    *to* when the cold comes, which would quietly decide one of the
-    questions the experiment is supposed to be asking.
+    North and south are as far apart as the ground between them: a degree
+    of latitude is about 111 km, so a map a few kilometres across lies at
+    one latitude, and a map meant for moving between climates must be
+    large enough to span them. The first version spread every map over a
+    declared eight degrees whatever its size, so a four-kilometre map
+    reached across nearly nine hundred kilometres of climate, and
+    neighbouring flat cells differed by five degrees on the same day.
     """
-    span = math.radians(R.get("map_latitude_span_degrees"))
-    centre = math.radians(R.get("map_centre_latitude_degrees"))
-    f = (cell.y / max(1, terrain.size - 1)) - 0.5
-    return centre + span * f
+    offset_m = (cell.y - (terrain.size - 1) / 2.0) * terrain.cell_size_m
+    return math.radians(R.get("map_centre_latitude_degrees")
+                        + offset_m / R.get("meters_per_degree_latitude"))

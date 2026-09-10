@@ -43,3 +43,5 @@ jobs:
         run: python -m tests.v2.test_planning
       - name: Climate
         run: python -m tests.v2.test_climate
+      - name: Ecology
+        run: python -m tests.v2.test_ecology

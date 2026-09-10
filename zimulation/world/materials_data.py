@@ -42,8 +42,16 @@ SOURCES = {
     "grain": "modelling choice: ordinal 0..1 fineness of fracture, which "
              "sets which solids take a predictable edge",
     "elasticity": "modelling choice: ordinal 0..1 recoverable deformation",
-    "moisture_capacity": "modelling choice: mass fraction of water held, "
-                         "order of magnitude",
+    "moisture_capacity": "largest mass fraction of water held, wet basis "
+                         "(water over total mass). For wood, from the maximum "
+                         "moisture content at full saturation, (1.54 - G) / "
+                         "(1.54 G) on a dry basis for specific gravity G "
+                         "(Simpson 1993, USDA Forest Products Laboratory "
+                         "FPL-RN-0243): 0.41 for hardwood, 0.61 for softwood. "
+                         "Earlier values of 0.30 and 0.35 sat at or below the "
+                         "flame's extinction moisture, so soaked wood could "
+                         "never be too wet to burn. Other materials: "
+                         "modelling choice",
     "porosity": "modelling choice: ordinal void fraction",
     "toxicity": "modelling choice: ordinal harm on ingestion",
 }
@@ -71,13 +79,13 @@ MATERIALS = {
         "hardwood", density=750.0, hardness=0.38, toughness=0.72, grain=0.55,
         elasticity=0.30, conductivity=0.16, specific_heat=1700.0,
         ignition_point=570.0, combustion_enthalpy=1.6e7,
-        moisture_capacity=0.30, porosity=0.35),
+        moisture_capacity=0.41, porosity=0.35),
 
     "softwood": Material(
         "softwood", density=450.0, hardness=0.22, toughness=0.55, grain=0.60,
         elasticity=0.35, conductivity=0.12, specific_heat=1700.0,
         ignition_point=560.0, combustion_enthalpy=1.6e7,
-        moisture_capacity=0.35, porosity=0.55),
+        moisture_capacity=0.61, porosity=0.55),
 
     "dry_grass": Material(
         "dry_grass", density=80.0, hardness=0.03, toughness=0.10, grain=0.40,
