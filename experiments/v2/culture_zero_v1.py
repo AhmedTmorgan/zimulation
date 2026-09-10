@@ -1,12 +1,12 @@
 """Culture Zero v1: the first reproducible Zimulation 2 baseline.
 
-This is an experiment runner, not causal code.  It supplies scenario
-conditions and records what the existing world and agents do.  It does not
+This is an experiment runner, not causal code. It supplies scenario
+conditions and records what the existing world and agents do. It does not
 reward civilisation, language, controlled combustion, social hierarchy or
 any other human outcome.
 
 The initial protocol deliberately uses a warm latitude so that immediate
-cold death does not dominate tests of basic perception and learning.  A
+cold death does not dominate tests of basic perception and learning. A
 separate cold-bottleneck protocol should later ask whether organisms can
 solve the thermal problem by controlled heat, movement, insulation or some
 other route.
@@ -24,6 +24,7 @@ import zimulation.behavior.params  # noqa: F401
 import zimulation.biology.params  # noqa: F401
 import zimulation.cognition.params  # noqa: F401
 import zimulation.world.params  # noqa: F401
+from zimulation.cognition import goals as GO
 from zimulation.core.engine import Engine
 from zimulation.core.parameters import REGISTRY as R
 from zimulation.core.scheduler import DAY
@@ -74,10 +75,7 @@ def run_seed(seed, days, size=16, founders=1, latitude=20.0,
             for ev in engine.ledger.events if ev.kind == "death")
         remedies = Counter()
         for a in agents:
-            for drive in a.goals.remedies:
-                pass
-            for drive in ("hunger", "thirst", "cold", "heat", "pain",
-                          "sleepiness"):
+            for drive in GO.SIGNALS:
                 remedies[drive] += len(a.goals.remedies(drive))
 
         living = sum(a.actor.body.alive for a in agents)
