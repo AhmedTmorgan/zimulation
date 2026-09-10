@@ -23,3 +23,5 @@ jobs:
         run: python -m tests.v2.test_physics
       - name: Physiology
         run: python -m tests.v2.test_physiology
+      - name: Genetics
+        run: python -m tests.v2.test_genetics

@@ -180,3 +180,54 @@ R.declare("visual_acuity_decline_onset_years", "B", "yr", 40.0, 30.0, 55.0,
 R.declare("sensory_decline_per_year", "B", "yr^-1", 0.012, 0.002, 0.05,
           "annual fractional loss of sensory acuity after onset",
           "+/-0.01", ["biology.development"])
+
+# --------------------------------------------------------------- heredity
+R.declare("trait_population_sd", "B", "dimensionless", 0.16, 0.05, 0.3,
+          "spread of a personality dimension across a population, on a "
+          "0..1 population-relative scale; roughly one standard deviation "
+          "of a normed score",
+          "+/-0.05", ["biology.genetics"])
+
+R.declare("trait_heritability", "B", "dimensionless", 0.45, 0.2, 0.7,
+          "heritability of HEXACO dimensions from twin studies, which "
+          "cluster between about 0.3 and 0.6 (Vernon et al. 2008; "
+          "Lee & Ashton 2004)",
+          "+/-0.1 and varies by dimension", ["biology.genetics"])
+
+R.declare("mutation_sd", "N", "dimensionless", 0.02, 0.0, 0.1,
+          "modelling choice: small per-generation perturbation standing in "
+          "for new variation from mutation and recombination",
+          "order of magnitude", ["biology.genetics"])
+
+R.declare("physical_trait_heritability", "B", "dimensionless", 0.7, 0.4, 0.9,
+          "heritability of adult body size, which is high in well-fed "
+          "populations (Visscher et al. 2006)",
+          "+/-0.1", ["biology.genetics"])
+
+R.declare("adult_mass_sd_kg", "B", "kg", 8.0, 2.0, 20.0,
+          "spread of adult body mass within a population", "+/-4 kg",
+          ["biology.genetics"])
+
+R.declare("adult_mass_min_kg", "B", "kg", 30.0, 20.0, 45.0,
+          "smallest viable adult body mass of this body plan", "+/-8 kg",
+          ["biology.genetics"])
+
+R.declare("adult_mass_max_kg", "B", "kg", 120.0, 80.0, 180.0,
+          "largest adult body mass of this body plan", "+/-30 kg",
+          ["biology.genetics"])
+
+R.declare("metabolic_efficiency_sd", "B", "dimensionless", 0.08, 0.01, 0.2,
+          "between-individual spread in resting metabolic rate relative to "
+          "the value predicted from mass", "+/-0.04", ["biology.genetics"])
+
+R.declare("thermal_tolerance_sd", "B", "dimensionless", 0.08, 0.01, 0.2,
+          "between-individual spread in cold and heat tolerance", "+/-0.04",
+          ["biology.genetics"])
+
+R.declare("physiology_multiplier_min", "B", "dimensionless", 0.6, 0.3, 0.9,
+          "lowest relative value a physiological multiplier can take",
+          "+/-0.1", ["biology.genetics"])
+
+R.declare("physiology_multiplier_max", "B", "dimensionless", 1.4, 1.1, 2.0,
+          "highest relative value a physiological multiplier can take",
+          "+/-0.2", ["biology.genetics"])
