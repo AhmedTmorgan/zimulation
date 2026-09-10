@@ -128,9 +128,17 @@ R.declare("friction_heat_efficiency", "N", "dimensionless", 0.35, 0.05, 0.8,
           "in the contact zone; order of magnitude, not measured",
           "order of magnitude", ["world.mechanics"])
 
-R.declare("fracture_energy_scale", "N", "J kg^-1", 1.4e4, 1e3, 1e5,
-          "impact energy per unit mass at which a brittle solid fractures; "
-          "collapses a fracture-mechanics problem into one number",
+R.declare("fracture_energy_scale", "N", "J kg^-1", 25.0, 5.0, 200.0,
+          "impact energy per kilogram of target at which a brittle solid "
+          "fractures; collapses a fracture-mechanics problem into one "
+          "number. A hand-held hard-hammer blow delivers tens of joules "
+          "(half m v squared for a stone near a kilogram at several metres "
+          "a second), enough to detach flakes from a hand-sized flint core "
+          "(Cotterell & Kamminga 1987 on the mechanics of flaking). The "
+          "first value, 1.4e4 J/kg, put a 0.6 kg core at 8,400 J -- some "
+          "three hundred times what any arm delivers -- so no body could "
+          "ever have knapped; the physics test passed only because it "
+          "injected the energy directly",
           "order of magnitude", ["world.mechanics"])
 
 R.declare("conchoidal_edge_quality", "S", "dimensionless", 0.85, 0.0, 1.0,

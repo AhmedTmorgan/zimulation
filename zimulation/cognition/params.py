@@ -190,3 +190,52 @@ R.declare("causal_window_s", "S", "s", 21600.0, 1.0, 604800.0,
           "may follow and still be linked to it; long enough to connect "
           "eating to later sickness (Garcia & Koelling 1966)",
           "modelling choice", ["cognition.causal_inference"])
+
+# --------------------------------------------------------------- concepts
+R.declare("concept_coupling", "S", "probability", 0.5, 0.01, 0.99,
+          "modelling choice: prior probability that two experiences belong "
+          "to the same category -- the coupling parameter of Anderson's "
+          "rational model of categorisation (Anderson 1991, Psychological "
+          "Review 98:409). 0.5 is the neutral value: even prior odds of "
+          "'the same as this one' and 'something new', a Chinese-restaurant "
+          "concentration of one. Anderson's fits ran lower, near 0.3, but "
+          "in this continuous model that made a mind whose sense of scale "
+          "was still coarse file forty readings it could not tell apart as "
+          "forty different kinds -- found by the counterexample test. Low "
+          "values posit new kinds readily; high values lump",
+          "modelling choice", ["cognition.concepts"])
+
+R.declare("concept_prior_strength", "S", "pseudo-observations", 1.0, 0.1,
+          20.0,
+          "modelling choice: how many experiences' worth of weight the "
+          "agent's overall sense of a feature's mean and spread carries "
+          "when judging a young category (the kappa0 = nu0 of a "
+          "normal-inverse-chi-squared prior; Anderson 1991 used 1)",
+          "modelling choice", ["cognition.concepts"])
+
+R.declare("concept_capacity", "N", "categories", 60.0, 5.0, 1000.0,
+          "modelling choice: cap on categories one agent maintains; a "
+          "computational bound, the least useful giving way first",
+          "order of magnitude", ["cognition.concepts"])
+
+R.declare("concept_min_examples", "S", "examples", 5.0, 2.0, 50.0,
+          "modelling choice: how many members a category needs before its "
+          "usefulness is judged", "modelling choice",
+          ["cognition.concepts"])
+
+R.declare("concept_min_predictive_value", "S", "dimensionless", 0.01,
+          0.0001, 0.2,
+          "modelling choice: how much knowing a category must improve "
+          "outcome prediction for it to be kept; a category that predicts "
+          "nothing is dissolved", "modelling choice",
+          ["cognition.concepts"])
+
+R.declare("counterexample_deviation", "S", "dimensionless", 0.4, 0.05, 1.0,
+          "modelling choice: how far a member's outcome must depart from "
+          "its category's before it counts as a counterexample",
+          "modelling choice", ["cognition.concepts"])
+
+R.declare("concept_example_cap", "N", "examples", 30.0, 3.0, 500.0,
+          "modelling choice: how many example and counterexample records "
+          "a category keeps; a computational bound", "order of magnitude",
+          ["cognition.concepts"])

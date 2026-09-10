@@ -31,3 +31,7 @@ jobs:
         run: python -m tests.v2.test_cognition
       - name: Causal inference
         run: python -m tests.v2.test_causal
+      - name: Concepts
+        run: python -m tests.v2.test_concepts
+      - name: Primitives
+        run: python -m tests.v2.test_primitives
