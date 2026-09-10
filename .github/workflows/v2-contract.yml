@@ -27,3 +27,5 @@ jobs:
         run: python -m tests.v2.test_genetics
       - name: Development and reproduction
         run: python -m tests.v2.test_development
+      - name: Cognition
+        run: python -m tests.v2.test_cognition

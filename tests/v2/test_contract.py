@@ -254,10 +254,15 @@ def test_declared_parameters_have_real_sources():
     must admit to being one rather than borrowing the authority of a
     citation.
     """
-    # Every declaration module, not just the world's: an earlier version
-    # loaded only world.params, so no biology parameter was ever checked.
-    import zimulation.world.params  # noqa: F401  (declares on import)
-    import zimulation.biology.params  # noqa: F401
+    # Every declaration module, found by glob rather than listed. The first
+    # version loaded only world.params, so no biology parameter was ever
+    # checked; widening it by hand fixed biology and would have missed the
+    # next package just the same.
+    import importlib
+    for f in sorted(PKG.rglob("params.py")):
+        importlib.import_module(
+            "zimulation." + f.relative_to(PKG).with_suffix("").as_posix()
+            .replace("/", "."))
     from zimulation.core.parameters import REGISTRY
 
     assert len(REGISTRY.all()) > 40, "parameters did not register"

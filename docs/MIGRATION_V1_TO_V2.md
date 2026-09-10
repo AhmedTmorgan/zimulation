@@ -8,7 +8,7 @@
 | 1 — scientific contract | **done** — contract, registry, truth barrier, ledger, clock, 17 tests |
 | 2 — physical world | **done** — materials, objects, combustion, space, climate; 20 physics tests |
 | 3 — biological agent | **done** — physiology, genetics, development, reproduction; 31 biology tests |
-| 4 — learning agent | next |
+| 4 — learning agent | **in progress** — perception, memory, belief done and verified; causal inference, concepts, skills, planning pending |
 | 5 — social layer | not started |
 | 6 — communication | not started |
 | 7 — animals and disease | not started |
