@@ -2,13 +2,13 @@
 The engine: time, the world, and the organisms in it.
 
 An event-driven clock (core.scheduler) advances between meaningful events,
-never by a fixed global step (contract section 48). The world keeps its
-own time: weather is drawn once a day for the whole map, and ecology --
-growth, litter, the wetting and drying of fuel -- is stepped every hour,
-with rain falling in the first hours of a wet day. Each organism keeps its
-own: it acts, and its next turn comes when the act is done. Between turns
-its body is advanced by physiology for the time the act took, in the air
-of the place it stands at that hour of that day.
+never by a fixed global step (contract section 48). The world keeps its own
+time: weather is drawn once a day for the whole map, and ecology -- growth,
+litter, the wetting and drying of fuel -- is stepped every hour, with rain
+falling in the first hours of a wet day. Each organism keeps its own: it
+acts, and its next turn comes when the act is done. Between turns its body
+is advanced by physiology for the time the act took, in the air of the
+place it stands at that hour of that day.
 
 What the engine writes down (core.events) is what an observer needs to
 reconstruct what happened: arrivals, deaths and their causes, remedies an
@@ -23,7 +23,7 @@ The engine decides nothing for anyone. It keeps time and applies physics.
 from __future__ import annotations
 
 from ..behavior import primitives as PR
-from ..behavior.arbitration import Agent
+from ..behavior.open_agent import Agent
 from ..biology import genetics as G
 from ..biology import physiology as PHY
 from ..core.parameters import REGISTRY as R
