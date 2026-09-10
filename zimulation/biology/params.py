@@ -390,3 +390,10 @@ R.declare("shivering_stop_core_k", "B", "K", 303.15, 301.0, 305.0,
           "core temperature below which shivering ceases and stupor sets "
           "in, about 30 C (Danzl & Pozos 1994, New England Journal of "
           "Medicine 331:1756)", "+/-1.5 K", ["biology.physiology"])
+
+R.declare("satiety_meal_energy_j", "B", "J", 2.5e6, 1.0e6, 5.0e6,
+          "energy in the stomach at which short-term hunger is fully "
+          "quieted, about that of an ordinary meal (some 600 kcal). "
+          "Nutrients reaching the gut, not the stomach's stretch, suppress "
+          "the hunger signal ghrelin (Williams et al. 2003, Endocrinology "
+          "144:2765)", "+/-50%", ["cognition.perception"])

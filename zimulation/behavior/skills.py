@@ -270,6 +270,14 @@ class Skills:
         self._state = +Counter(state)
         self._buffer = []
 
+    def sync(self, state):
+        """Take in the situation only if something the agent did not do
+        has changed it -- regrowth, weather, another's hand -- so that the
+        change is not credited to the agent's own recent acts."""
+        fresh = +Counter(state)
+        if fresh != self._state:
+            self.begin(fresh)
+
     # ---------------------------------------------------------- learning
     def record(self, step, state_after, time, trace_id=None, settings=None):
         """

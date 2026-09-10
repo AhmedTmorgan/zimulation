@@ -42,6 +42,14 @@ people. This was missing at first and was found by connecting the body to
 a mind: hunger was read only from stored fat, so a whole meal moved it by
 about a hundredth -- below the senses' own noise -- and eating could never
 have been learned from what the body reports.
+
+A second correction came from running agents. The fast part of hunger was
+first quieted by the stomach's stretch, so water relieved hunger as well as
+food did; agents learned to drink when hungry, drank thousands of times in
+five days and never ate. In people, ghrelin is suppressed by nutrients
+reaching the gut, not by filling the stomach with water (Williams et al.
+2003). Short-term hunger is now quieted by the energy in the stomach;
+fullness stays a separate signal.
 """
 
 from __future__ import annotations
@@ -121,6 +129,13 @@ class Body:
     @property
     def gut_water_kg(self):
         return self.gut_food_water_kg + self.gut_fluid_kg
+
+    @property
+    def satiety(self):
+        """How far nutrients in the stomach quiet short-term hunger: the
+        energy it holds over that of an ordinary meal. Water fills the
+        stomach and adds nothing here."""
+        return min(1.0, self.gut_energy_j / R.get("satiety_meal_energy_j"))
 
     @property
     def fullness(self):

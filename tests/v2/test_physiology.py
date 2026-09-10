@@ -334,6 +334,18 @@ def test_moderate_cold_is_a_food_problem_not_a_temperature_one():
     assert b.fat_kg < fat0, "three days at 10 C cost nothing"
 
 
+def test_water_fills_the_stomach_but_food_quiets_hunger():
+    """Found by running agents: while stretch alone quieted hunger they
+    learned to drink when hungry and never ate. Nutrients, not bulk,
+    suppress the hunger signal (Williams et al. 2003)."""
+    s = Streams(4).get("body")
+    watered, fed = P.Body(), P.Body()
+    P.feed(watered, 1.0, 0.0, water_fraction=1.0)
+    P.feed(fed, 1.0, 3.2e6, water_fraction=0.6)
+    assert abs(watered.fullness - fed.fullness) < 1e-9
+    assert _felt(watered, s, "hunger") - _felt(fed, s, "hunger") > 0.3
+
+
 def _run_all():
     ok = fail = 0
     for name, fn in sorted(globals().items()):

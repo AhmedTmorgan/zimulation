@@ -170,3 +170,43 @@ R.declare("skill_example_cap", "N", "examples", 30.0, 3.0, 500.0,
           "modelling choice: how many performances a procedure keeps as "
           "its record; a computational bound", "order of magnitude",
           ["behavior.skills"])
+
+# ------------------------------------------------------------- arbitration
+R.declare("explore_bout_acts", "S", "acts", 8.0, 1.0, 50.0,
+          "modelling choice: how many times a newly tried act is repeated "
+          "before another is chosen, unless it fails -- as infants repeat "
+          "actions that do something (the circular reactions of Piaget "
+          "1952, The Origins of Intelligence in Children)",
+          "modelling choice", ["behavior.arbitration"])
+
+R.declare("remedy_bout_max_acts", "N", "acts", 60.0, 1.0, 1000.0,
+          "modelling choice: longest run of a remedy in one go; the run "
+          "normally ends sooner, when the drive stops leading or the act "
+          "fails", "order of magnitude", ["behavior.arbitration"])
+
+R.declare("turn_min_s", "N", "s", 30.0, 1.0, 600.0,
+          "modelling choice: the shortest span one decision covers, the "
+          "balance spent idle; a computational bound", "order of magnitude",
+          ["behavior.arbitration"])
+
+R.declare("sleep_turn_s", "N", "s", 3600.0, 600.0, 14400.0,
+          "modelling choice: how long one spell of sleep lasts before the "
+          "body is felt again", "order of magnitude",
+          ["behavior.arbitration"])
+
+R.declare("relief_prior_sd", "S", "dimensionless", 0.1, 0.01, 0.5,
+          "modelling choice: how far an act not yet tried is imagined to "
+          "move a bodily signal -- the spread against which known remedies "
+          "are weighed when choosing whether to explore instead (Thompson "
+          "1933; people explore both at random and toward uncertainty, "
+          "Wilson et al. 2014)", "modelling choice",
+          ["behavior.arbitration"])
+
+R.declare("consummatory_bias", "H", "probability", 0.0, 0.0, 1.0,
+          "H: chance that, when hunger or thirst is the most pressing drive "
+          "and no remedy is chosen, exploration puts something in the mouth "
+          "instead of choosing among all acts -- the mouthing of infants, "
+          "an innate tendency of mammals; it says nothing about what to "
+          "mouth. Off in the baseline. Under test: do lone agents need such "
+          "a prior to find food and water before thirst kills them?",
+          "under test", ["behavior.arbitration"])

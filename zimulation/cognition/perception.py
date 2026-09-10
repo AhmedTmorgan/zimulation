@@ -156,9 +156,10 @@ def sense_body(body, time, stream):
     one to the other is fixed by the body, and the organism never sees the
     quantity underneath.
 
-    Hunger has a fast part, an empty stomach, as well as the slow part of
-    depleted reserves; thirst counts water already swallowed, as people's
-    does; fullness is the stomach's stretch. Without these a meal moved
+    Hunger has a fast part, which nutrients in the stomach quiet -- water
+    fills it and does not (Williams et al. 2003) -- as well as the slow
+    part of depleted reserves; thirst counts water already swallowed, as
+    people's does; fullness is the stomach's stretch. Without these a meal moved
     the hunger signal by about a hundredth, below this function's own
     noise, and eating could never have been learned from the body.
     """
@@ -170,7 +171,7 @@ def sense_body(body, time, stream):
     raw = {
         "hunger": (1.0 - body.fat_fraction / R.get("fat_fraction_healthy")
                    + R.get("emptiness_hunger_weight")
-                   * (1.0 - body.fullness)),
+                   * (1.0 - body.satiety)),
         "thirst": short / max(R.get("division_epsilon"), full_water
                               * R.get("dehydration_lethal_fraction")),
         "fullness": body.fullness,
