@@ -37,6 +37,10 @@ INFRASTRUCTURE = {
     "core/parameters.py",
     # deterministic stream plumbing - carries no causal claim
     "core/rng.py",
+    # ledger schema and hashing - records history, models nothing
+    "core/events.py",
+    # the clock - tick arithmetic and queue ordering, no causal claim
+    "core/scheduler.py",
 }
 
 

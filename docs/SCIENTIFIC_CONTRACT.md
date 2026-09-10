@@ -50,14 +50,15 @@ classifications of things that already happened.
 <!-- FORBIDDEN-VOCABULARY-BEGIN -->
 ```
 religion deity god worship ritual doctrine clergy sacred shrine prayer
-king ruler chief monarch govern government state polity law legislate
+king ruler chief monarch sovereign govern government polity statehood
+legislation statute decree tribunal
 war raid army battle warrior conquest
-moral morality good evil sin virtue righteous wicked
-love hate lie deceive deception propaganda betray
-farm farming agriculture crop harvest domesticate livestock
-fire technology science philosophy medicine
-civilization tribe nation ethnicity race caste
-marriage family-institution property ownership money currency trade-institution
+moral morality evil sin virtue righteous wicked
+love hate deceive deception propaganda betray
+farming agriculture crop harvest domesticate livestock
+technology philosophy civilization
+tribe nation ethnicity caste
+marriage ownership money currency
 ```
 <!-- FORBIDDEN-VOCABULARY-END -->
 
@@ -68,8 +69,34 @@ which walks the AST of every causal module and fails on any matching
 identifier, attribute, function or class name. Contract and enforcement
 therefore cannot drift apart: editing the fence edits the test.
 
-Matching is on whole word-parts, so `combustion` is fine while `fire_at`
-is not, and `warmth` is fine while `war_party` is not.
+Matching is on whole word-parts, in both `snake_case` and `CamelCase`, so
+`combustion` is fine while `fire_at` is not, and `warmth` is fine while
+`WarParty` is not.
+
+### Why some obvious words are absent
+
+`state`, `law`, `property`, `family`, `fire`, `good`, `lie` and `science`
+are not in the list, and their absence is deliberate rather than an
+oversight.
+
+They are hopelessly overloaded in code. `state` is what a random generator
+and a belief both have; `law` is what physics has; `property` is a Python
+decorator; `family` is biological kin, which agents legitimately possess.
+A list containing them produces constant false positives, and a guard that
+cries wolf is weakened until it means nothing — the first version of this
+list flagged `Stream.state()` six times and the immediate temptation was to
+loosen the checker rather than sharpen the list.
+
+The political and cultural concepts they gesture at are captured precisely
+instead: `sovereign`, `statehood`, `polity`, `legislation`, `statute`,
+`decree`, `ownership`, `tribe`, `nation`.
+
+The remaining words are caught by other means. `fire` as a concept is
+caught because combustion is modelled in physical terms and any module
+introducing a `fire` abstraction would also introduce `ignition`,
+`kindle` or `hearth` naming that review will see; the same holds for
+`science` and `good`. A word list cannot be the only defence. It catches
+the careless case; review catches the clever one.
 
 ## 4. The ground-truth barrier
 
