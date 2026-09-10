@@ -5,8 +5,8 @@
 | phase | state |
 |---|---|
 | 0 — freeze V1 | **done** — tagged `v1.0-legacy`, released |
-| 1 — scientific contract | **in progress** |
-| 2 — physical world | not started |
+| 1 — scientific contract | **done** — contract, registry, truth barrier, ledger, clock, 17 tests |
+| 2 — physical world | **in progress** — materials, objects, combustion done and verified; space, ecology, water pending |
 | 3 — biological agent | not started |
 | 4 — learning agent | not started |
 | 5 — social layer | not started |

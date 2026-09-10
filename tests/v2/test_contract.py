@@ -57,14 +57,28 @@ def _causal_modules():
         yield f
 
 
+def _declaration_modules():
+    """
+    Files whose entire job is to declare parameters. The numbers have to
+    live somewhere, and that somewhere is here, with units and sources
+    attached. They are exempt from the literal check and constrained
+    instead by test_declaration_modules_only_declare.
+    """
+    for f in sorted(PKG.rglob("params.py")):
+        yield f
+    for f in sorted(PKG.rglob("*_data.py")):
+        yield f
+
+
 def _model_modules():
     """
     Causal modules that actually encode a model of the world or a mind --
     the ones whose every number is a claim. Infrastructure is excluded,
     since a slice index is not a statement about reality.
     """
+    decl = set(_declaration_modules())
     for f in _causal_modules():
-        if f.relative_to(PKG).as_posix() in INFRASTRUCTURE:
+        if f.relative_to(PKG).as_posix() in INFRASTRUCTURE or f in decl:
             continue
         yield f
 
@@ -202,6 +216,84 @@ def test_every_causal_number_is_declared():
         f"{len(hits)} undeclared constants in causal code:\n  "
         + "\n  ".join(hits[:20])
         + "\n(declare them in zimulation/core/parameters.py)")
+
+
+def test_declaration_modules_only_declare():
+    """
+    A params.py or *_data.py may contain declarations and nothing else.
+
+    This is the price of exempting them from the literal check. If a
+    declaration file could branch or compute, it would be the obvious
+    place to hide a mechanism -- numbers with a little logic wrapped
+    around them, in the one file nobody audits for logic.
+    """
+    hits = []
+    for f in _declaration_modules():
+        tree = ast.parse(f.read_text(encoding="utf-8"), filename=str(f))
+        for node in tree.body:
+            if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue          # the table itself
+            if isinstance(node, (ast.Import, ast.ImportFrom, ast.Expr)):
+                # a bare Expr must be a call or a docstring, nothing else
+                if isinstance(node, ast.Expr) and not isinstance(
+                        node.value, (ast.Call, ast.Constant)):
+                    hits.append(f"{f.relative_to(ROOT)}:{node.lineno} "
+                                f"-> {type(node.value).__name__}")
+                continue
+            hits.append(f"{f.relative_to(ROOT)}:{node.lineno} "
+                        f"-> {type(node).__name__}")
+    joined = chr(10) + "  "
+    assert not hits, (
+        "declaration modules must contain only declarations:"
+        + joined + joined.join(hits))
+
+
+def test_declared_parameters_have_real_sources():
+    """
+    Every parameter says where its value came from, and a modelling guess
+    must admit to being one rather than borrowing the authority of a
+    citation.
+    """
+    import zimulation.world.params  # noqa: F401  (declares on import)
+    from zimulation.core.parameters import REGISTRY
+
+    assert len(REGISTRY.all()) > 15, "world parameters did not register"
+    thin = []
+    for name, p in REGISTRY.all().items():
+        if len(p.source) < 20:
+            thin.append(f"{name}: {p.source!r}")
+        if p.category in ("N", "S") and not any(
+                w in p.source.lower() for w in
+                ("choice", "stands in", "lumps", "collapses", "order of",
+                 "approximation", "sets the", "how ")):
+            thin.append(f"{name}: category {p.category} should say why "
+                        f"this value rather than cite authority")
+    joined = chr(10) + "  "
+    assert not thin, "weak parameter sources:" + joined + joined.join(thin)
+
+
+def test_data_tables_carry_sources():
+    """
+    A property table is hundreds of claims about the world. Each column
+    needs a source, and an ordinal score must admit to being one rather
+    than borrowing the authority of a measurement.
+    """
+    import importlib
+    missing = []
+    for f in _declaration_modules():
+        if not f.name.endswith("_data.py"):
+            continue
+        mod = importlib.import_module(
+            "zimulation." + f.relative_to(PKG).with_suffix("").as_posix()
+            .replace("/", "."))
+        sources = getattr(mod, "SOURCES", None)
+        if not sources:
+            missing.append(f"{f.name}: no SOURCES mapping")
+            continue
+        for col, why in sources.items():
+            if len(why) < 20:
+                missing.append(f"{f.name}:{col}: source too thin")
+    assert not missing, "data tables without provenance: " + ", ".join(missing)
 
 
 def test_parameter_registry_refuses_bad_declarations():
