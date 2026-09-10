@@ -258,3 +258,23 @@ R.declare("plan_aspiration", "S", "probability", 0.6, 0.05, 0.99,
           "enough and search stops -- satisficing (Simon 1956, "
           "Psychological Review 63:129)", "modelling choice",
           ["cognition.planning"])
+
+# ------------------------------------------------------------------ goals
+R.declare("curiosity_baseline", "S", "dimensionless", 0.15, 0.0, 1.0,
+          "modelling choice: urgency of curiosity, the pull toward the "
+          "unknown that has no bodily signal and wins only when nothing "
+          "else presses (Berlyne 1960; Oudeyer & Kaplan 2007, Frontiers in "
+          "Neurorobotics 1:6)", "modelling choice", ["cognition.goals"])
+
+R.declare("relief_confidence_z", "S", "standard errors", 2.0, 0.5, 4.0,
+          "modelling choice: standard errors by which a bout's mean change "
+          "in a bodily signal must stay below zero for the act to count as "
+          "a remedy", "modelling choice", ["cognition.goals"])
+
+R.declare("relief_min_bouts", "S", "bouts", 3.0, 2.0, 20.0,
+          "modelling choice: least number of bouts before an act on a kind "
+          "is trusted as a remedy", "modelling choice", ["cognition.goals"])
+
+R.declare("relief_example_cap", "N", "bouts", 30.0, 3.0, 500.0,
+          "modelling choice: how many bouts a remedy keeps as its record; a "
+          "computational bound", "order of magnitude", ["cognition.goals"])
