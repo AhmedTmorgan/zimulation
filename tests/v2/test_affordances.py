@@ -76,6 +76,41 @@ def test_open_agent_can_attempt_rubbing_without_knowing_its_effect():
         or agent.acts > 0
 
 
+def test_throwing_and_force_application_are_attemptable_not_only_physical():
+    terrain, actor = _actor()
+    light = _thing(actor, "flint", 0.2)
+    log = _thing(actor, "hardwood", 10.0, 1.0)
+    PR.grasp(actor, light)
+    offered = AF.available(actor, terrain)
+    assert offered.get("throw"), "the body could throw but cognition could not try"
+    assert offered.get("apply_force"), "the body could push but cognition could not try"
+
+    agent = Agent(1, actor, Streams(10))
+    destination = terrain.neighbours(actor.cell.x, actor.cell.y)[0]
+    thrown = agent._act("throw", [light, destination], terrain, 0)
+    assert thrown.done and light not in actor.held
+
+    # Force application is checked independently after the throw because it
+    # moves the actor together with the acted-on object.
+    log.position = actor.here
+    if log not in actor.cell.things:
+        actor.cell.things.append(log)
+    destination = terrain.neighbours(actor.cell.x, actor.cell.y)[0]
+    pushed = agent._act("apply_force", [log, destination], terrain, 1)
+    assert pushed.done
+
+
+def test_spatial_attempts_are_not_falsely_stored_as_object_only_skills():
+    terrain, actor = _actor()
+    stone = _thing(actor, "flint", 0.2)
+    PR.grasp(actor, stone)
+    agent = Agent(1, actor, Streams(12))
+    destination = terrain.neighbours(actor.cell.x, actor.cell.y)[0]
+    assert agent._act("throw", [stone, destination], terrain, 0).done
+    acts = {step.act for sk in agent.skills.items for step in sk.steps}
+    assert "throw" not in acts, "destination was silently discarded from a skill"
+
+
 def test_engine_uses_the_open_affordance_agent():
     e = Engine(11, 12)
     a = e.add(e.terrain.at(5, 5), 25.0)
