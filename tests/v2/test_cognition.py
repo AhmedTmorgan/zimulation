@@ -176,7 +176,10 @@ def test_the_body_is_felt_through_signals_with_no_subject():
     assert hs.subject is None and hs.channel == PC.INTERNAL
     assert hs.features["hunger"] > 0.6
     assert hc.features["cold"] > 0.6
-    assert PC.sense_body(P.Body(), 0, s).features["hunger"] < 0.2
+    fed = P.Body()
+    P.feed(fed, 0.8 * fed.stomach_capacity_kg, 3.2e6, water_fraction=0.6)
+    assert PC.sense_body(fed, 0, s).features["hunger"] < 0.2
+    assert PC.sense_body(P.Body(), 0, s).features["hunger"] > 0.3,         "an empty stomach was not felt, though the reserves were full"
 
 
 # ----------------------------------------------------------------- memory

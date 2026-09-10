@@ -23,8 +23,11 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
 import zimulation.biology.params  # noqa: F401  (declares on import)
+import zimulation.cognition.params  # noqa: F401
 import zimulation.world.params  # noqa: F401
 from zimulation.biology import physiology as P
+from zimulation.cognition import perception as PC
+from zimulation.core.rng import Streams
 from zimulation.core.parameters import REGISTRY as R
 from zimulation.core.scheduler import DAY, HOUR, YEAR
 
@@ -225,6 +228,65 @@ def test_bigger_bodies_cost_more_but_less_than_proportionally():
     assert rl > rs, "a larger body did not cost more to run"
     assert rl < rs * 2.0, \
         "metabolic cost scaled linearly with mass; Kleiber says otherwise"
+
+
+# -------------------------------------------------------------- the gut
+def test_a_meal_reaches_the_store_over_hours_not_at_once():
+    b = P.Body()
+    fat0 = b.fat_kg
+    P.feed(b, 1.0, 3.2e6, water_fraction=0.6)
+    assert b.fat_kg == fat0 and b.gut_energy_j == 3.2e6
+    P.digest(b, R.get("gastric_half_time_food_s"))
+    assert abs(b.gut_energy_j - 1.6e6) < 1.0, "a half-time was not a half"
+    P.digest(b, 12 * 3600.0)
+    assert b.gut_energy_j < 0.01 * 3.2e6
+    gained = (b.fat_kg - fat0) * R.get("energy_store_capacity_j_per_kg")
+    # Emptying is exponential and never quite finishes; what the claim
+    # rests on is that nothing is lost or made: absorbed plus still in the
+    # stomach is exactly what was eaten.
+    assert abs(gained + b.gut_energy_j - 3.2e6) < 1.0,         f"{gained:.0f} J absorbed and {b.gut_energy_j:.0f} J in the gut"
+
+
+def test_a_full_stomach_takes_no_more():
+    b = P.Body()
+    took = P.feed(b, 10.0, 3.2e6)
+    assert abs(b.gut_kg - b.stomach_capacity_kg) < 1e-9
+    assert abs(took - b.stomach_capacity_kg * 3.2e6) < 1.0
+    assert P.feed(b, 1.0, 3.2e6) == 0.0
+
+
+def _felt(b, s, signal):
+    return sum(PC.sense_body(b, 0, s).features[signal]
+               for _ in range(20)) / 20
+
+
+def test_drinking_quenches_thirst_before_the_water_is_absorbed():
+    """Thirst falls as water is swallowed, as it does in people, well
+    before the water reaches the body. Twenty readings are averaged,
+    because the signal itself is noisy."""
+    s = Streams(2).get("body")
+    b = P.Body()
+    b.water_kg -= 3.0
+    before = _felt(b, s, "thirst")
+    P.feed(b, 1.5, 0.0, water_fraction=1.0)
+    after = _felt(b, s, "thirst")
+    assert before - after > 0.2, (before, after)
+    w0 = b.water_kg
+    P.digest(b, 3600.0)
+    assert b.water_kg - w0 > 1.3, "the water was never absorbed"
+
+
+def test_hunger_returns_hours_after_a_meal():
+    """An empty stomach is felt as hunger within hours though the
+    reserves have hardly changed -- the fast signal that makes meals
+    recur."""
+    s = Streams(3).get("body")
+    b = P.Body()
+    P.feed(b, b.stomach_capacity_kg, 3.2e6, water_fraction=0.6)
+    sated = _felt(b, s, "hunger")
+    P.step(b, 6 * 3600.0, WARM)
+    later = _felt(b, s, "hunger")
+    assert later - sated > 0.25, (sated, later)
 
 
 def _run_all():

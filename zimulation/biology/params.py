@@ -352,3 +352,30 @@ R.declare("birth_complication_severity_high", "S", "dimensionless", 1.3,
           "per birth for a healthy mother, which is the pre-modern figure "
           "-- derived here, not declared", "modelling choice",
           ["biology.reproduction"])
+
+# -------------------------------------------------------------------- gut
+R.declare("stomach_capacity_kg", "B", "kg", 1.5, 0.8, 4.0,
+          "comfortable stomach capacity of an adult of reference mass, "
+          "about a litre and a half; maximal distension reaches about four "
+          "(Geliebter 1988, Physiology & Behavior 44:665). Scaled in "
+          "proportion to body mass, a modelling choice for the young",
+          "+/-0.5 kg", ["biology.physiology"])
+
+R.declare("gastric_half_time_food_s", "B", "s", 5400.0, 1800.0, 14400.0,
+          "half-time of gastric emptying for a mixed solid meal, about an "
+          "hour and a half (scintigraphic norms, Tougas et al. 2000, "
+          "American Journal of Gastroenterology 95:1456)",
+          "+/-45 min", ["biology.physiology"])
+
+R.declare("gastric_half_time_fluid_s", "B", "s", 900.0, 300.0, 3600.0,
+          "half-time of gastric emptying for water, ten to twenty minutes "
+          "(Hunt & Spurrell 1951, Journal of Physiology 113:157)",
+          "+/-5 min", ["biology.physiology"])
+
+R.declare("emptiness_hunger_weight", "S", "dimensionless", 0.5, 0.0, 1.0,
+          "modelling choice: how strongly an empty stomach is felt as "
+          "hunger, standing for the short-term signals -- ghrelin rising "
+          "before meals and falling after them (Cummings et al. 2001, "
+          "Diabetes 50:1714) -- that make a well-nourished person hungry "
+          "within hours of eating", "modelling choice",
+          ["cognition.perception"])

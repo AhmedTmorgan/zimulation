@@ -395,9 +395,10 @@ def combine(actor, a, b):
 
 def consume(actor, thing):
     """
-    Take one mouthful. The body gains whatever energy the material holds
-    for an organism -- which may be none -- and suffers whatever its
-    toxicity does. Only what a jaw can break can be eaten at all.
+    Take one mouthful into the stomach, if it has room. The body later
+    gains whatever energy the material holds for an organism -- which may
+    be none -- and at once suffers whatever its toxicity does. Only what a
+    jaw can break can be eaten at all.
     """
     if not _reachable(actor, thing):
         return _refuse("consume", "out of reach")
@@ -406,6 +407,9 @@ def consume(actor, thing):
     bite = min(thing.mass_kg, R.get("bite_mass_kg"))
     if bite <= 0.0:
         return _refuse("consume", "nothing left")
+    bite = min(bite, PHY.stomach_room(actor.body))
+    if bite <= 0.0:
+        return _refuse("consume", "stomach full")
     gained = PHY.feed(actor.body, bite, thing.material.nutritive_energy,
                       water_fraction=thing.moisture)
     if thing.material.toxicity > 0.0:

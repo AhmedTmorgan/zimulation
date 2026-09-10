@@ -155,13 +155,25 @@ def sense_body(body, time, stream):
     hunger, not a fat fraction; pain, not a damage total. The mapping from
     one to the other is fixed by the body, and the organism never sees the
     quantity underneath.
+
+    Hunger has a fast part, an empty stomach, as well as the slow part of
+    depleted reserves; thirst counts water already swallowed, as people's
+    does; fullness is the stomach's stretch. Without these a meal moved
+    the hunger signal by about a hundredth, below this function's own
+    noise, and eating could never have been learned from the body.
     """
     sd = R.get("interoception_sd")
     drop = R.get("core_temperature_k") - body.core_temperature_k
     scale_k = R.get("cold_signal_scale_k")
+    full_water = body.mass_kg * R.get("water_fraction_of_mass")
+    short = max(0.0, full_water - body.water_kg - body.gut_water_kg)
     raw = {
-        "hunger": 1.0 - body.fat_fraction / R.get("fat_fraction_healthy"),
-        "thirst": body.water_fraction_lost / R.get("dehydration_lethal_fraction"),
+        "hunger": (1.0 - body.fat_fraction / R.get("fat_fraction_healthy")
+                   + R.get("emptiness_hunger_weight")
+                   * (1.0 - body.fullness)),
+        "thirst": short / max(R.get("division_epsilon"), full_water
+                              * R.get("dehydration_lethal_fraction")),
+        "fullness": body.fullness,
         "cold": drop / scale_k,
         "heat": -drop / scale_k,
         "pain": body.pain,

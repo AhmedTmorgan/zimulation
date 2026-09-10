@@ -7,7 +7,7 @@
 | 0 — freeze V1 | **done** — tagged `v1.0-legacy`, released |
 | 1 — scientific contract | **done** — contract, registry, truth barrier, ledger, clock, 17 tests |
 | 2 — physical world | **done** — materials, objects, combustion, space, climate; 20 physics tests. Corrected during Phase 4, found by driving the world with a body: fracture threshold was 300x a human blow; nothing cooled; heating skipped the latent heat of water; failed ignition counted energy twice; friction now heats a contact (world/thermal.py). |
-| 3 — biological agent | **done** — physiology, genetics, development, reproduction; 31 biology tests |
+| 3 — biological agent | **done** — physiology, genetics, development, reproduction; 31 biology tests Corrected when body and mind were connected: the body had no gut, so hunger was read only from stored fat and a whole meal moved it below the senses' noise; a stomach, gastric emptying, fullness, a fast hunger signal and thirst that counts swallowed water were added. |
 | 4 — learning agent | **done** — perception, memory, belief, causal inference done and verified; concepts (Anderson's rational model) and sensorimotor primitives done and verified; learned skills (reliable state changes chunked from the agent's own acts; stone-breaking found by babbling with real physics) done and verified; bounded satisficing planning over the agent's own experience, every decision's alternatives on record, done and verified. Section 18's counterfactual replay awaits the engine |
 | 5 — social layer | not started |
 | 6 — communication | not started |

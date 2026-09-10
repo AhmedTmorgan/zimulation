@@ -41,6 +41,7 @@ def test_a_newborn_starts_at_birth_mass_and_grows_toward_its_genome():
     for _ in range(22 * 365):
         D.grow(b, g, DAY, nourished=1.0)
         P.feed(b, 0.05, 6.0e6)
+        P.digest(b, DAY)
         b.age_s += DAY
     assert abs(b.mass_kg - g["adult_mass_kg"]) < 0.1 * g["adult_mass_kg"], (
         f"grew to {b.mass_kg:.1f} kg against a genetic target of "

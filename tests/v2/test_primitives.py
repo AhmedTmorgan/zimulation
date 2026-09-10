@@ -154,7 +154,10 @@ def test_eating_feeds_only_on_what_nourishes_and_can_be_bitten():
     root = _thing(a, "tuber", 0.2)
     fat0 = a.body.fat_kg
     act = PR.consume(a, root)
-    assert act.done and a.body.fat_kg > fat0, "eating a tuber fed nothing"
+    assert act.done and a.body.gut_energy_j > 0.0,         "the tuber never reached the stomach"
+    assert a.body.fat_kg == fat0, "food reached the store undigested"
+    P.digest(a.body, 6 * 3600.0)
+    assert a.body.fat_kg > fat0, "a digested tuber fed nothing"
     rock = _thing(a, "flint", 0.2)
     assert not PR.consume(a, rock).done, "a jaw bit into flint"
 

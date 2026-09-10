@@ -32,6 +32,16 @@ temperature problem.
 That is the whole reason external heat could matter to an organism, and
 nothing in this module says so. It says only that heat lost to the
 surroundings must be replaced from somewhere.
+
+## The gut
+
+What is swallowed goes to a stomach and is absorbed over hours; water on
+its own empties in minutes. The stomach's stretch is felt (fullness), and
+an empty stomach is felt as hunger even while the reserves are full, as in
+people. This was missing at first and was found by connecting the body to
+a mind: hunger was read only from stored fat, so a whole meal moved it by
+about a hundredth -- below the senses' own noise -- and eating could never
+have been learned from what the body reports.
 """
 
 from __future__ import annotations
@@ -50,7 +60,9 @@ class Body:
 
     __slots__ = ("mass_kg", "fat_kg", "water_kg", "core_temperature_k",
                  "damage", "sleep_debt_s", "age_s", "alive", "cause",
-                 "insulation_clo", "activity", "last_update_s")
+                 "insulation_clo", "activity", "last_update_s",
+                 "gut_food_kg", "gut_energy_j", "gut_food_water_kg",
+                 "gut_fluid_kg")
 
     def __init__(self, mass_kg=None, age_s=0.0):
         self.mass_kg = (R.get("reference_body_mass_kg") if mass_kg is None
@@ -70,6 +82,12 @@ class Body:
         self.insulation_clo = R.get("bare_skin_insulation_clo")
         self.activity = 1.0
         self.last_update_s = 0.0
+        #: the stomach: what has been swallowed and not yet absorbed --
+        #: food with its energy and bound water, and free water apart
+        self.gut_food_kg = 0.0
+        self.gut_energy_j = 0.0
+        self.gut_food_water_kg = 0.0
+        self.gut_fluid_kg = 0.0
 
     # ------------------------------------------------------------ derived
     @property
@@ -89,6 +107,27 @@ class Body:
         full = self.mass_kg * R.get("water_fraction_of_mass")
         return max(0.0, (full - self.water_kg) / max(
             R.get("division_epsilon"), full))
+
+    @property
+    def stomach_capacity_kg(self):
+        """Comfortable stomach capacity, in proportion to body mass."""
+        return (R.get("stomach_capacity_kg") * self.mass_kg
+                / R.get("reference_body_mass_kg"))
+
+    @property
+    def gut_kg(self):
+        return self.gut_food_kg + self.gut_fluid_kg
+
+    @property
+    def gut_water_kg(self):
+        return self.gut_food_water_kg + self.gut_fluid_kg
+
+    @property
+    def fullness(self):
+        """Stomach distension: what it holds over what it comfortably
+        takes."""
+        return min(1.0, self.gut_kg / max(R.get("division_epsilon"),
+                                          self.stomach_capacity_kg))
 
     @property
     def pain(self):
@@ -209,19 +248,53 @@ def spend_energy(body, joules):
     return joules - have
 
 
+def stomach_room(body):
+    """How much more the stomach will take, in kilograms."""
+    return max(0.0, body.stomach_capacity_kg - body.gut_kg)
+
+
 def feed(body, mass_kg, energy_per_kg, water_fraction=0.0):
     """
-    Consume material. Energy goes to the store, water to the body.
+    Swallow material. It goes to the stomach, not straight into the body;
+    digest() moves it on. Returns the energy swallowed.
 
-    Nothing here knows what food is. It takes a mass of some material and
-    the energy an organism can extract from it, which is a property of the
-    material. Whether a given thing is worth eating is discoverable, and
-    getting it wrong is possible.
+    Nothing here knows what food is. It takes a mass of some material, the
+    energy an organism can extract from it and the water it holds -- all
+    properties of the material. Whether a given thing is worth eating is
+    discoverable, and getting it wrong is possible. Whatever carries energy
+    or bulk empties at the pace of a meal; water alone empties far faster.
+    The stomach takes only what fits.
     """
-    body.fat_kg += (mass_kg * energy_per_kg
-                    / R.get("energy_store_capacity_j_per_kg"))
-    body.water_kg += mass_kg * water_fraction
-    return mass_kg * energy_per_kg
+    take = min(max(0.0, mass_kg), stomach_room(body))
+    if take <= 0.0:
+        return 0.0
+    water = take * max(0.0, min(1.0, water_fraction))
+    if energy_per_kg > 0.0 or water < take:
+        body.gut_food_kg += take
+        body.gut_energy_j += take * max(0.0, energy_per_kg)
+        body.gut_food_water_kg += water
+    else:
+        body.gut_fluid_kg += take
+    return take * max(0.0, energy_per_kg)
+
+
+def digest(body, dt_s):
+    """
+    Empty the stomach for dt seconds: energy passes to the store and water
+    to the body, each compartment at its own measured pace. Emptying is
+    exponential and exact over any step. Returns the energy absorbed.
+    """
+    food = 1.0 - 0.5 ** (dt_s / R.get("gastric_half_time_food_s"))
+    fluid = 1.0 - 0.5 ** (dt_s / R.get("gastric_half_time_fluid_s"))
+    energy = body.gut_energy_j * food
+    water = body.gut_food_water_kg * food + body.gut_fluid_kg * fluid
+    body.gut_energy_j -= energy
+    body.gut_food_water_kg -= body.gut_food_water_kg * food
+    body.gut_food_kg -= body.gut_food_kg * food
+    body.gut_fluid_kg -= body.gut_fluid_kg * fluid
+    body.fat_kg += energy / R.get("energy_store_capacity_j_per_kg")
+    body.water_kg += water
+    return energy
 
 
 def lose_water(body, ambient_k, dt_s):
@@ -306,6 +379,7 @@ def step(body, dt_s, ambient_k, activity=1.0, sleeping=False,
     body.activity = activity
     body.age_s += dt_s
 
+    digest(body, dt_s)
     extra = thermoregulate(body, ambient_k, dt_s, wind_factor,
                            external_heat_w)
     basal_j = resting_rate_w(body) * activity * dt_s
