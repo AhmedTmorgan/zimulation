@@ -203,6 +203,139 @@ def test_thin_things_burn_faster_than_thick_ones_of_equal_mass():
         "a thin stick did not burn out faster than a compact one"
 
 
+# ------------------------------------------------------------------ space
+def _terrain(size=20, seed=3):
+    from zimulation.world.space import Terrain
+    return Terrain(size, Streams(seed).get("terrain"))
+
+
+def test_terrain_has_places_that_differ():
+    """
+    If every cell were alike, moving would be pointless and local
+    knowledge would be complete knowledge. Both would quietly settle
+    questions the experiment is meant to ask.
+    """
+    t = _terrain()
+    cells = t.all_cells()
+    elevations = [c.elevation_m for c in cells]
+    assert max(elevations) - min(elevations) > 50.0, "the map is flat"
+    assert any(c.water_fraction > 0.0 for c in cells), "no water anywhere"
+    assert any(c.water_fraction == 0.0 for c in cells), "no dry land"
+    assert any(c.rock_exposure > 0.3 for c in cells),         "no exposed rock, so knappable stone could never be found"
+
+
+def test_sight_is_limited_and_ridges_block_it():
+    from zimulation.world import space as SP
+    t = _terrain(size=40)
+    a = t.at(2, 2)
+    far = t.at(38, 38)
+    assert not SP.visible_from(t, a, far) or         t.distance_m(a, far) <= R.get("visibility_clear_day"),         "saw something beyond the horizon"
+    assert SP.visible_from(t, a, a), "a cell cannot see itself"
+
+
+def test_sound_carries_less_far_than_sight():
+    """
+    The asymmetry that makes signalling at a distance worth anything: a
+    call can reach someone who cannot see you.
+    """
+    assert R.get("sound_audible_distance") < R.get("visibility_clear_day")
+
+
+def test_climbing_costs_more_than_walking_level():
+    from zimulation.world import space as SP
+    t = _terrain()
+    cells = t.all_cells()
+    low = min(cells, key=lambda c: c.elevation_m)
+    high = max(cells, key=lambda c: c.elevation_m)
+    up = SP.travel_cost_s(t, low, high, 1.2)
+    down = SP.travel_cost_s(t, high, low, 1.2)
+    assert up > down, "climbing cost no more than descending"
+
+
+# ---------------------------------------------------------------- climate
+def test_seasons_follow_from_axial_tilt():
+    """
+    Summer is warmer than winter because the sun is higher, and that
+    follows from the tilt alone. Nothing writes a season into the world.
+    """
+    from zimulation.world import climate as CL
+    from zimulation.core.scheduler import DAY
+    t = _terrain()
+    cell = t.at(10, 10)
+    lat = CL.latitude_of(t, cell)
+    noon = DAY // 4
+
+    def at_day(d):
+        return CL.temperature_at(d * DAY + noon, cell, lat)
+
+    summer, winter = at_day(91), at_day(273)
+    equinox = at_day(0)
+    assert summer > equinox > winter, (
+        f"seasons out of order: summer {summer:.1f} equinox {equinox:.1f} "
+        f"winter {winter:.1f}")
+
+
+def test_higher_latitude_is_colder():
+    from zimulation.world import climate as CL
+    from zimulation.core.scheduler import DAY
+    t = _terrain()
+    south, north = t.at(10, 0), t.at(10, t.size - 1)
+    noon = 91 * DAY + DAY // 4
+    ts = CL.temperature_at(noon, south, CL.latitude_of(t, south))
+    tn = CL.temperature_at(noon, north, CL.latitude_of(t, north))
+    assert tn < ts, "the northern edge was not colder than the southern"
+
+
+def test_night_is_colder_than_day():
+    from zimulation.world import climate as CL
+    from zimulation.core.scheduler import DAY
+    t = _terrain()
+    cell = t.at(10, 10)
+    lat = CL.latitude_of(t, cell)
+    day = CL.temperature_at(91 * DAY + DAY // 4, cell, lat)
+    night = CL.temperature_at(91 * DAY + 3 * DAY // 4, cell, lat)
+    assert night < day - 5.0, "no meaningful day-night swing"
+
+
+def test_elevation_cools_by_lapse_rate():
+    from zimulation.world import climate as CL
+    from zimulation.core.scheduler import DAY
+    t = _terrain()
+    cells = [c for c in t.all_cells() if c.water_fraction == 0.0]
+    low = min(cells, key=lambda c: c.elevation_m)
+    high = max(cells, key=lambda c: c.elevation_m)
+    lat = CL.latitude_of(t, low)
+    tick = 91 * DAY + DAY // 4
+    assert (CL.temperature_at(tick, high, lat)
+            < CL.temperature_at(tick, low, lat)), "height did not cool"
+
+
+def test_rain_is_episodic_and_wets_the_ground():
+    """
+    Rain must fall in bursts, not as a constant trickle. Continuous
+    drizzle would keep fuel permanently damp and quietly close off
+    combustion; dry spells are what make it possible at all.
+    """
+    from zimulation.world import climate as CL
+    from zimulation.core.scheduler import DAY
+    t = _terrain()
+    cell = t.at(10, 10)
+    lat = CL.latitude_of(t, cell)
+    s = Streams(9).get("rain")
+    days = [CL.precipitation(d * DAY, cell, lat, s) for d in range(365)]
+    wet = sum(1 for r in days if r > 0.0)
+    assert 0 < wet < 300, f"{wet} wet days of 365 is not episodic"
+
+    cell.moisture = 0.1
+    before = cell.moisture
+    CL.update_moisture(cell, 0.02, 288.0, DAY)
+    assert cell.moisture > before, "rain did not wet the ground"
+
+    for _ in range(60):
+        CL.update_moisture(cell, 0.0, 300.0, DAY)
+    assert cell.moisture < 0.2, "warm dry weather never dried the ground"
+
+
 def _run_all():
     ok = fail = 0
     for name, fn in sorted(globals().items()):

@@ -53,7 +53,7 @@ religion deity god worship ritual doctrine clergy sacred shrine prayer
 king ruler chief monarch sovereign govern government polity statehood
 legislation statute decree tribunal
 war raid army battle warrior conquest
-moral morality evil sin virtue righteous wicked
+moral morality evil virtue righteous wicked transgression
 love hate deceive deception propaganda betray
 farming agriculture crop harvest domesticate livestock
 technology philosophy civilization
@@ -75,13 +75,14 @@ Matching is on whole word-parts, in both `snake_case` and `CamelCase`, so
 
 ### Why some obvious words are absent
 
-`state`, `law`, `property`, `family`, `fire`, `good`, `lie` and `science`
-are not in the list, and their absence is deliberate rather than an
-oversight.
+`state`, `law`, `property`, `family`, `sin`, `fire`, `good`, `lie` and
+`science` are not in the list, and their absence is deliberate rather than
+an oversight.
 
 They are hopelessly overloaded in code. `state` is what a random generator
 and a belief both have; `law` is what physics has; `property` is a Python
-decorator; `family` is biological kin, which agents legitimately possess.
+decorator; `family` is biological kin, which agents legitimately possess;
+and `sin` is the most-used function in any model with a season in it.
 A list containing them produces constant false positives, and a guard that
 cries wolf is weakened until it means nothing — the first version of this
 list flagged `Stream.state()` six times and the immediate temptation was to
@@ -89,7 +90,7 @@ loosen the checker rather than sharpen the list.
 
 The political and cultural concepts they gesture at are captured precisely
 instead: `sovereign`, `statehood`, `polity`, `legislation`, `statute`,
-`decree`, `ownership`, `tribe`, `nation`.
+`decree`, `ownership`, `tribe`, `nation`, `transgression`.
 
 The remaining words are caught by other means. `fire` as a concept is
 caught because combustion is modelled in physical terms and any module
