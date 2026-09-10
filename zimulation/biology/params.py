@@ -231,3 +231,124 @@ R.declare("physiology_multiplier_min", "B", "dimensionless", 0.6, 0.3, 0.9,
 R.declare("physiology_multiplier_max", "B", "dimensionless", 1.4, 1.1, 2.0,
           "highest relative value a physiological multiplier can take",
           "+/-0.2", ["biology.genetics"])
+
+# ------------------------------------------------------------ development
+R.declare("birth_mass_kg", "B", "kg", 3.3, 2.0, 4.5,
+          "mass of a newborn of this body plan at term", "+/-0.5 kg",
+          ["biology.development", "biology.reproduction"])
+
+R.declare("maturity_age_years", "B", "yr", 18.0, 14.0, 24.0,
+          "age by which body mass approaches its adult value", "+/-3 yr",
+          ["biology.development"])
+
+R.declare("growth_steepness_per_year", "S", "yr^-1", 0.35, 0.1, 1.0,
+          "modelling choice: a single logistic stands in for infant "
+          "growth plus the adolescent spurt; this sets how sharp it is",
+          "modelling choice", ["biology.development"])
+
+R.declare("max_growth_kg_per_year", "B", "kg yr^-1", 8.0, 3.0, 15.0,
+          "peak rate of mass gain during the adolescent growth spurt",
+          "+/-3 kg/yr", ["biology.development"])
+
+R.declare("tissue_energy_cost_j_per_kg", "B", "J kg^-1", 2.2e7, 1.0e7, 3.5e7,
+          "energy to deposit a kilogram of new mixed tissue, including the "
+          "cost of synthesis (Butte 2000, energy requirements of growth)",
+          "+/-30%", ["biology.development"])
+
+R.declare("strength_peak_age_years", "B", "yr", 27.0, 20.0, 35.0,
+          "age of peak muscular strength", "+/-5 yr",
+          ["biology.development"])
+
+R.declare("strength_decline_per_year", "B", "yr^-1", 0.01, 0.003, 0.03,
+          "fraction of peak strength lost per year past the peak, "
+          "averaged across later life", "+/-0.005", ["biology.development"])
+
+R.declare("strength_floor_fraction", "S", "dimensionless", 0.25, 0.05, 0.6,
+          "modelling choice: the least strength an aged body retains, so "
+          "that decline flattens rather than reaching zero",
+          "modelling choice", ["biology.development"])
+
+R.declare("sensory_floor_fraction", "S", "dimensionless", 0.2, 0.0, 0.6,
+          "modelling choice: the least sensory acuity an aged body "
+          "retains", "modelling choice", ["biology.development"])
+
+# ----------------------------------------------------------- reproduction
+R.declare("reproductive_maturity_fraction", "B", "dimensionless", 0.85,
+          0.6, 0.98,
+          "fraction of the growth curve at which reproduction becomes "
+          "possible; menarche and spermarche both fall near the end of "
+          "the adolescent spurt (Frisch 1978)",
+          "+/-0.08", ["biology.reproduction"])
+
+R.declare("conception_probability_per_event", "B", "dimensionless", 0.04,
+          0.005, 0.3,
+          "probability that a single insemination leads to conception, "
+          "averaged over the cycle (Wilcox et al. 1995)",
+          "+/-0.02", ["biology.reproduction"])
+
+R.declare("fertility_decline_onset_years", "B", "yr", 35.0, 28.0, 42.0,
+          "age from which female fecundity declines (Menken et al. 1986)",
+          "+/-4 yr", ["biology.reproduction"])
+
+R.declare("fertility_end_years", "B", "yr", 50.0, 44.0, 56.0,
+          "age of reproductive senescence; this ends fertility, not life, "
+          "and is the one age-indexed biological limit the model keeps",
+          "+/-4 yr", ["biology.reproduction"])
+
+R.declare("fat_fraction_ovulation_low", "B", "dimensionless", 0.12,
+          0.08, 0.17,
+          "body fat fraction below which ovulation ceases "
+          "(Frisch & McArthur 1974)", "+/-0.03", ["biology.reproduction"])
+
+R.declare("fat_fraction_ovulation_high", "B", "dimensionless", 0.20,
+          0.15, 0.26,
+          "body fat fraction above which ovulation is unimpaired by body "
+          "condition (Frisch & McArthur 1974)", "+/-0.03",
+          ["biology.reproduction"])
+
+R.declare("lactation_suppression", "B", "dimensionless", 0.85, 0.3, 0.99,
+          "fraction of fecundity suppressed while nursing -- lactational "
+          "amenorrhea, the main birth-spacing mechanism in forager "
+          "populations (Konner & Worthman 1980)",
+          "+/-0.1", ["biology.reproduction"])
+
+R.declare("lactation_duration_years", "B", "yr", 2.5, 0.5, 4.5,
+          "duration of nursing in forager populations", "+/-1 yr",
+          ["biology.reproduction"])
+
+R.declare("gestation_days", "B", "d", 266.0, 250.0, 285.0,
+          "duration of human gestation from conception", "+/-10 d",
+          ["biology.reproduction"])
+
+R.declare("gestation_extra_power_w", "B", "W", 15.0, 8.0, 30.0,
+          "average extra energy expenditure of pregnancy, about 290 kcal "
+          "per day (Butte & King 2005)", "+/-5 W",
+          ["biology.reproduction"])
+
+R.declare("lactation_extra_power_w", "B", "W", 25.0, 15.0, 40.0,
+          "extra energy expenditure of lactation, about 500 kcal per day",
+          "+/-8 W", ["biology.reproduction"])
+
+R.declare("sex_ratio_male_fraction", "B", "dimensionless", 0.512, 0.48, 0.54,
+          "fraction of births that are male (the secondary sex ratio)",
+          "+/-0.01", ["biology.reproduction"])
+
+R.declare("birth_complication_probability", "B", "dimensionless", 0.05,
+          0.01, 0.2,
+          "probability of a serious obstetric complication in a healthy "
+          "mother without medical care", "+/-0.03",
+          ["biology.reproduction"])
+
+R.declare("birth_complication_severity_low", "S", "dimensionless", 0.3,
+          0.0, 1.0,
+          "modelling choice: least tissue damage a complication inflicts, "
+          "in units of the lethal threshold",
+          "modelling choice", ["biology.reproduction"])
+
+R.declare("birth_complication_severity_high", "S", "dimensionless", 1.3,
+          0.5, 3.0,
+          "modelling choice: greatest such damage. With the range and the "
+          "complication rate this implies maternal mortality near 1.5% "
+          "per birth for a healthy mother, which is the pre-modern figure "
+          "-- derived here, not declared", "modelling choice",
+          ["biology.reproduction"])

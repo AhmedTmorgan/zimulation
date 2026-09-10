@@ -254,10 +254,13 @@ def test_declared_parameters_have_real_sources():
     must admit to being one rather than borrowing the authority of a
     citation.
     """
+    # Every declaration module, not just the world's: an earlier version
+    # loaded only world.params, so no biology parameter was ever checked.
     import zimulation.world.params  # noqa: F401  (declares on import)
+    import zimulation.biology.params  # noqa: F401
     from zimulation.core.parameters import REGISTRY
 
-    assert len(REGISTRY.all()) > 15, "world parameters did not register"
+    assert len(REGISTRY.all()) > 40, "parameters did not register"
     thin = []
     for name, p in REGISTRY.all().items():
         if len(p.source) < 20:

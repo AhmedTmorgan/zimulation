@@ -25,3 +25,5 @@ jobs:
         run: python -m tests.v2.test_physiology
       - name: Genetics
         run: python -m tests.v2.test_genetics
+      - name: Development and reproduction
+        run: python -m tests.v2.test_development
