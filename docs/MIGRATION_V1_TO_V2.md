@@ -8,7 +8,7 @@
 | 1 — scientific contract | **done** — contract, registry, truth barrier, ledger, clock, 17 tests |
 | 2 — physical world | **done** — materials, objects, combustion, space, climate; 20 physics tests. Corrected during Phase 4, found by driving the world with a body: fracture threshold was 300x a human blow; nothing cooled; heating skipped the latent heat of water; failed ignition counted energy twice; friction now heats a contact (world/thermal.py). |
 | 3 — biological agent | **done** — physiology, genetics, development, reproduction; 31 biology tests |
-| 4 — learning agent | **in progress** — perception, memory, belief, causal inference done and verified; concepts (Anderson's rational model) and sensorimotor primitives done and verified; skills, planning pending |
+| 4 — learning agent | **in progress** — perception, memory, belief, causal inference done and verified; concepts (Anderson's rational model) and sensorimotor primitives done and verified; learned skills (reliable state changes chunked from the agent's own acts; stone-breaking found by babbling with real physics) done and verified; planning pending |
 | 5 — social layer | not started |
 | 6 — communication | not started |
 | 7 — animals and disease | not started |

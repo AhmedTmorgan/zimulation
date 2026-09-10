@@ -37,3 +37,5 @@ jobs:
         run: python -m tests.v2.test_primitives
       - name: Thermal
         run: python -m tests.v2.test_thermal
+      - name: Skills
+        run: python -m tests.v2.test_skills

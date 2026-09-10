@@ -143,8 +143,12 @@ def _put_down(actor, thing):
 
 
 def _drop_spent(actor):
-    """Anything held that no longer has mass is gone from the hand."""
+    """Anything that no longer has mass -- broken up, eaten -- is gone,
+    from the hand and from the ground alike. (The first version cleared
+    only the hand, so a core struck to pieces stayed lying there with no
+    mass, still perceivable.)"""
     actor.held = [t for t in actor.held if t.mass_kg > 0.0]
+    actor.cell.things = [t for t in actor.cell.things if t.mass_kg > 0.0]
 
 
 def _step_toward(terrain, here, target, sign):

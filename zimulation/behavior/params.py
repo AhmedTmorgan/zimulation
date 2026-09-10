@@ -131,3 +131,42 @@ R.declare("rub_stroke_m", "B", "m", 0.2, 0.02, 0.5,
 R.declare("max_stroke_m", "B", "m", 0.5, 0.2, 0.8,
           "longest rubbing stroke an arm makes without moving the body, "
           "about forearm plus hand", "+/-0.1 m", ["behavior.primitives"])
+
+# ----------------------------------------------------------------- skills
+R.declare("skill_min_repetitions", "S", "attempts", 3.0, 2.0, 20.0,
+          "modelling choice: how many times a run of acts must have been "
+          "performed from the same kind of situation before it can be "
+          "stored as a procedure", "modelling choice", ["behavior.skills"])
+
+R.declare("skill_min_reliability", "S", "probability", 0.6, 0.3, 0.95,
+          "modelling choice: how reliably (Laplace estimate) a run must "
+          "have produced its change to be stored", "modelling choice",
+          ["behavior.skills"])
+
+R.declare("skill_capacity", "N", "skills", 200.0, 10.0, 5000.0,
+          "modelling choice: cap on stored procedures; a computational "
+          "bound, the weakest giving way first", "order of magnitude",
+          ["behavior.skills"])
+
+R.declare("skill_routine_capacity", "N", "routines", 2000.0, 100.0,
+          100000.0,
+          "modelling choice: cap on runs of acts tracked as possible "
+          "procedures; a computational bound, the least recently seen "
+          "forgotten first", "order of magnitude", ["behavior.skills"])
+
+R.declare("skill_half_life_days", "B", "d", 365.0, 30.0, 3650.0,
+          "half-life of an unused procedure. Skills decay far more slowly "
+          "than episodic memories; after a year without practice loss is "
+          "substantial for cognitive skills and much smaller for "
+          "continuous physical ones (Arthur, Bennett, Stanush & McNelly "
+          "1998, Human Performance 11:57)", "order of magnitude",
+          ["behavior.skills"])
+
+R.declare("skill_forget_threshold", "S", "dimensionless", 0.05, 0.001, 0.5,
+          "modelling choice: strength below which an unused procedure is "
+          "gone", "modelling choice", ["behavior.skills"])
+
+R.declare("skill_example_cap", "N", "examples", 30.0, 3.0, 500.0,
+          "modelling choice: how many performances a procedure keeps as "
+          "its record; a computational bound", "order of magnitude",
+          ["behavior.skills"])
