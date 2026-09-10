@@ -215,18 +215,61 @@ R.declare("map_latitude_span_degrees", "P", "degrees", 8.0, 0.5, 40.0,
           "so that migration can actually change the climate experienced",
           "+/-100%", ["world.climate"])
 
-R.declare("seasonal_swing_k", "P", "K", 26.0, 2.0, 60.0,
-          "peak-to-neutral seasonal temperature range at mid latitude",
-          "+/-10 K by continentality", ["world.climate"])
+R.declare("solar_constant_w_m2", "P", "W m^-2", 1361.0, 1355.0, 1367.0,
+          "total solar irradiance at one astronomical unit (Kopp & Lean "
+          "2011, Geophysical Research Letters 38:L01706)", "+/-0.5 W m^-2",
+          ["world.climate"])
 
-R.declare("insolation_neutral", "N", "dimensionless", 0.62, 0.0, 1.0,
-          "modelling choice: the insolation value that maps to the annual "
-          "mean temperature; sets where the seasonal swing is centred",
-          "order of magnitude", ["world.climate"])
+R.declare("planetary_albedo", "P", "dimensionless", 0.30, 0.25, 0.35,
+          "fraction of sunlight the planet reflects (Stephens et al. 2015, "
+          "Reviews of Geophysics 53:141)", "+/-0.01", ["world.climate"])
+
+R.declare("olr_intercept_w_m2", "P", "W m^-2", 203.3, 190.0, 215.0,
+          "outgoing longwave radiation at 0 C in the linear fit A + B T to "
+          "satellite data (North, Cahalan & Coakley 1981, Reviews of "
+          "Geophysics 19:91)", "+/-5 W m^-2", ["world.climate"])
+
+R.declare("olr_slope_w_m2_k", "P", "W m^-2 K^-1", 2.09, 1.5, 2.3,
+          "increase of outgoing longwave per kelvin in the same fit "
+          "(North, Cahalan & Coakley 1981)", "+/-0.2", ["world.climate"])
+
+R.declare("heat_transport_w_m2_k", "P", "W m^-2 K^-1", 3.8, 2.0, 5.0,
+          "Budyko's meridional transport coefficient: heat moves toward the "
+          "planetary mean at C (T - Tplanet) (Budyko 1969, Tellus 21:611)",
+          "+/-1", ["world.climate"])
+
+R.declare("surface_heat_capacity_j_m2_k", "B", "J m^-2 K^-1", 2.38e7, 2.0e6,
+          3.0e8,
+          "effective heat capacity of ground and lower air, about six "
+          "metres of water. Calibrated together with the seasonal exchange "
+          "so that land at 45 degrees lags the sun by a month (warmest "
+          "month July, not June, as on the northern continents; e.g. "
+          "Hartmann 2016, Global Physical Climatology). Larger values give "
+          "oceanic climates -- smaller swings, later seasons", "calibrated, "
+          "+/-50%", ["world.climate"])
+
+R.declare("seasonal_exchange_w_m2_k", "B", "W m^-2 K^-1", 2.48, 0.0, 10.0,
+          "seasonal exchange of heat between a land surface and the ocean "
+          "air that reaches it; zero is a purely continental column. "
+          "Calibrated with the heat capacity so that land at 45 degrees "
+          "swings about 28 K between its coldest and warmest months, as "
+          "mid-continental climates do (Bucharest 25, Minneapolis 32). The "
+          "ranges at 15, 30 and 60 degrees are then checks, not targets",
+          "calibrated, +/-1", ["world.climate"])
+
+R.declare("diurnal_lag_s", "P", "s", 9000.0, 3600.0, 14400.0,
+          "delay of the daily temperature maximum near the ground after "
+          "solar noon, two to three hours (Oke 1987, Boundary Layer "
+          "Climates)", "+/-1 h", ["world.climate"])
+
+R.declare("celsius_zero_k", "P", "K", 273.15, None, None,
+          "zero of the Celsius scale in kelvin; the longwave fit above is "
+          "in Celsius", "exact", ["world.climate"])
 
 R.declare("diurnal_swing_k", "P", "K", 8.0, 1.0, 25.0,
-          "day-to-night temperature range near the ground", "+/-6 K",
-          ["world.climate"])
+          "day-to-night temperature range near the ground, peak to trough "
+          "(the first version applied it as an amplitude, doubling it)",
+          "+/-6 K", ["world.climate"])
 
 R.declare("lapse_rate_k_per_m", "P", "K m^-1", 0.0065, 0.004, 0.010,
           "environmental lapse rate in the lower atmosphere", "+/-0.002",
