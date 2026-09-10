@@ -1,0 +1,29 @@
+name: v2 reproducibility
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Record the exact source under test
+        run: |
+          mkdir -p reproducibility
+          git rev-parse HEAD > reproducibility/commit.txt
+          git archive --format=tar.gz HEAD > reproducibility/source.tar.gz
+          sha256sum reproducibility/source.tar.gz > reproducibility/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v2-source-${{ github.run_id }}
+          path: reproducibility/
+          retention-days: 14
+          if-no-files-found: error
