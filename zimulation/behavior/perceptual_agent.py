@@ -15,10 +15,9 @@ than supplied by the host runtime.
 
 Nearby things are classified visually. Held things are classified through
 handling, because grasping supplies tactile access. An explicit touch also
-contributes its tactile percept. Thus a lump may first belong to a coarse
-visual category and later be reclassified when hardness, edge or wetness
-becomes available. Category continuity is learned, not guaranteed by Python
-object identity.
+contributes its tactile percept. Moving from sight to handling invalidates
+the visual-only scene binding so the newly available tactile evidence can
+actually enter cognition.
 
 This is still not a full object-file model. It is the stricter baseline:
 there is no persistent individual-object identity in cognition at all. A
@@ -101,6 +100,13 @@ class Agent(_OpenAgent):
         return self._learn_kind(p, thing, time)
 
     def _act(self, act, targets, terrain, time):
+        # Grasping changes the available sensory channel. A thing that was
+        # merely seen can now be felt, so do not let the visual scene binding
+        # suppress that genuinely new evidence when the parent action records
+        # its role after a successful grasp.
+        if act == "grasp" and targets:
+            self._scene_labels.pop(targets[0], None)
+
         done = super()._act(act, targets, terrain, time)
         if act == "touch" and done.done:
             p = done.outcome.get("percept")
