@@ -37,6 +37,8 @@ jobs:
         run: python -m tests.v2.test_primitives
       - name: Affordances
         run: python -m tests.v2.test_affordances
+      - name: Perceptual grounding
+        run: python -m tests.v2.test_perceptual_grounding
       - name: Thermal
         run: python -m tests.v2.test_thermal
       - name: Skills
