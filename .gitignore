@@ -1,0 +1,15 @@
+# مخرجاتُ التشغيل — تُولَّد ولا تُحفَظ
+__pycache__/
+*.pyc
+*.html
+!docs/*.html
+ck*.json
+out*.txt
+val*.txt
+t[0-9]*.txt
+tests*.txt
+levers*.txt
+obs_out.txt
+final*.txt
+runs/
+.claude/

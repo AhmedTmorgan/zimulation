@@ -1,0 +1,74 @@
+name: دراسة القرية
+
+# رنٌّ واحد حكاية، ومئة رنٍّ إجابة.
+# يُشغَّل يدويًا من تبويب Actions ثم تُنزَّل النتائج من Artifacts.
+
+on:
+  workflow_dispatch:
+    inputs:
+      seeds_per_shard:
+        description: "عدد البذور في كل شريحة"
+        default: "10"
+      years:
+        description: "طول كل رنّ بالسنين"
+        default: "4000"
+      max_named:
+        description: "سقف الكائنات ذات المحاكاة الكاملة"
+        default: "300"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # لا تبعيات: المحاكاة مكتوبة بمكتبة بايثون القياسية وحدها
+      - name: تشغيل الشريحة
+        run: |
+          python study.py \
+            --seeds ${{ inputs.seeds_per_shard }} \
+            --first-seed $(( 1000 + ${{ matrix.shard }} * ${{ inputs.seeds_per_shard }} )) \
+            --years ${{ inputs.years }} \
+            --max-named ${{ inputs.max_named }} \
+            --mem-limit 3000 \
+            --workers 2 \
+            --out shard-${{ matrix.shard }}.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shard-${{ matrix.shard }}
+          path: shard-${{ matrix.shard }}.json
+
+  aggregate:
+    needs: run
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          path: shards
+      - name: دمج وتلخيص
+        run: python study.py --merge shards --out study.json | tee summary.txt
+      - name: الخلاصة في صفحة التشغيل
+        run: |
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat summary.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: study
+          path: |
+            study.json
+            summary.txt
