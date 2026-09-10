@@ -226,12 +226,27 @@ def test_terrain_has_places_that_differ():
 
 
 def test_sight_is_limited_and_ridges_block_it():
+    """
+    Distance limits sight, and so does what lies between: on level ground
+    two places see each other, and a ridge raised between them blocks it.
+    (The first version of this test was named for ridges and never raised
+    one, so the sight line itself was never exercised.)
+    """
     from zimulation.world import space as SP
     t = _terrain(size=40)
     a = t.at(2, 2)
     far = t.at(38, 38)
-    assert not SP.visible_from(t, a, far) or         t.distance_m(a, far) <= R.get("visibility_clear_day"),         "saw something beyond the horizon"
+    assert (not SP.visible_from(t, a, far)
+            or t.distance_m(a, far) <= R.get("visibility_clear_day")),         "saw something beyond the horizon"
     assert SP.visible_from(t, a, a), "a cell cannot see itself"
+    row = [t.at(x, 20) for x in range(4, 11)]
+    for c in row:
+        c.elevation_m = 0.0
+    viewer, target, middle = row[0], row[-1], row[3]
+    assert SP.visible_from(t, viewer, target), "level ground blocked sight"
+    middle.elevation_m = 200.0
+    assert not SP.visible_from(t, viewer, target), "a ridge did not block"
+    assert not SP.visible_from(t, target, viewer)
 
 
 def test_sound_carries_less_far_than_sight():

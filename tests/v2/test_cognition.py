@@ -372,6 +372,23 @@ def test_misattribution_does_not_depend_on_step_size():
     assert abs(one - many) < 0.12,         f"one 20-day jump gave {one:.2f}, twenty 1-day steps gave {many:.2f}"
 
 
+def test_each_kind_of_source_moves_a_belief_by_its_declared_weight():
+    """Seeing counts most; a record, an inference, a memory rebuilt,
+    testimony and imitation each count for less, by declared weights --
+    and a belief moves in that order."""
+    from zimulation.cognition import belief as BE
+    from zimulation.cognition import memory as MEM
+    moved = {}
+    for src in MEM.SOURCES:
+        b = BE.Belief(("x",), 0.0, 0)
+        moved[src] = BE.update(b, 1.0, src, 1)
+    by_move = sorted(MEM.SOURCES, key=lambda s: -moved[s])
+    by_weight = sorted(MEM.SOURCES, key=lambda s: -BE.source_weight(s))
+    assert by_move == by_weight, (by_move, by_weight)
+    assert moved[MEM.OBSERVED] == max(moved.values())
+    assert moved[MEM.IMITATED] == min(moved.values())
+
+
 def _run_all():
     ok = fail = 0
     for name, fn in sorted(globals().items()):

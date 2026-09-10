@@ -255,6 +255,50 @@ def test_acting_is_deterministic():
     assert run() == run()
 
 
+def test_a_body_can_drag_what_it_cannot_lift_but_not_without_limit():
+    terr = _world()
+    a = _actor(terr)
+    log = _thing(a, "hardwood", 60.0, 2.0)
+    assert PR.grasp(a, log).outcome.get("refused") == "too heavy"
+    nxt = terr.neighbours(a.cell.x, a.cell.y)[0]
+    act = PR.apply_force(a, log, terr, nxt)
+    assert act.done and a.cell is nxt and log.position == (nxt.x, nxt.y)
+    boulder = _thing(a, "granite", 500.0, 1.0)
+    onward = terr.neighbours(a.cell.x, a.cell.y)[0]
+    assert PR.apply_force(a, boulder, terr, onward).outcome.get(
+        "refused") == "too heavy", "a body dragged half a tonne"
+
+
+def test_a_light_stone_flies_farther_than_a_heavy_one():
+    """The arm gives a throw roughly fixed energy, so heavier things leave
+    the hand slower and land nearer."""
+    terr = _world(size=40, seed=2)
+    a = _actor(terr, x=5, y=5)
+    far = terr.at(35, 5)
+    light = _thing(a, "flint", 0.3)
+    heavy = _thing(a, "granite", 3.0)
+    PR.grasp(a, light)
+    near_throw = PR.throw(a, light, terr, far)
+    PR.grasp(a, heavy)
+    heavy_throw = PR.throw(a, heavy, terr, far)
+    assert near_throw.done and heavy_throw.done
+    assert light not in a.held and heavy not in a.held
+    assert near_throw.outcome["range_m"] > heavy_throw.outcome["range_m"]
+
+
+def test_a_toxic_mouthful_does_harm():
+    from zimulation.world.materials import Material
+    terr = _world()
+    a = _actor(terr)
+    bitter = Material("bitter_root", 1050.0, 0.08, 0.25, 0.15, 0.2, 0.5,
+                      3400.0, nutritive_energy=2.0e6, toxicity=0.8)
+    root = O.Thing(None, bitter, 0.2, 0.1, position=a.here)
+    a.cell.things.append(root)
+    before = a.body.damage
+    assert PR.consume(a, root).done
+    assert a.body.damage > before, "a toxic mouthful did no harm"
+
+
 def _run_all():
     ok = fail = 0
     for name, fn in sorted(globals().items()):

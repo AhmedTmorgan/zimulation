@@ -36,10 +36,9 @@ R.declare("activity_multiplier_walking", "B", "dimensionless", 3.5, 2.0, 6.0,
           "energy expenditure while walking, as a multiple of resting",
           "+/-1", ["biology.physiology"])
 
-R.declare("activity_multiplier_hard_effort", "B", "dimensionless", 7.0,
-          4.0, 12.0,
-          "expenditure during sustained hard physical work, as a multiple "
-          "of resting", "+/-2", ["biology.physiology"])
+# Hard work is paid act by act, at the efficiency of muscle
+# (behavior/primitives.py); a declared multiplier for it was never read and
+# the parameter audit removed it.
 
 R.declare("energy_store_capacity_j_per_kg", "B", "J kg^-1", 3.0e7, 1e7, 5e7,
           "usable energy per kilogram of stored body fat", "+/-20%",

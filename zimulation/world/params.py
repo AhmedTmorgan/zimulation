@@ -44,22 +44,9 @@ R.declare("boiling_point_water_k", "P", "K", 373.15, 340.0, 380.0,
           "per 1000 m of altitude", "exact at 1 atm", ["world.thermal"])
 
 # ------------------------------------------------------------ combustion
-R.declare("ignition_temperature_dry_plant", "P", "K", 570.0, 470.0, 650.0,
-          "piloted ignition of dry cellulosic material (Babrauskas 2003)",
-          "+/-50 K by species and thickness",
-          ["world.combustion"])
-
-R.declare("ignition_temperature_fat", "P", "K", 620.0, 550.0, 700.0,
-          "animal fat autoignition is higher than dry plant matter",
-          "+/-60 K", ["world.combustion"])
-
-R.declare("combustion_enthalpy_plant", "P", "J kg^-1", 1.6e7, 1.2e7, 2.0e7,
-          "heat of combustion of dry wood, ~16 MJ/kg", "+/-20%",
-          ["world.combustion"])
-
-R.declare("combustion_enthalpy_fat", "P", "J kg^-1", 3.7e7, 3.0e7, 4.2e7,
-          "heat of combustion of animal fat, ~37 MJ/kg", "+/-15%",
-          ["world.combustion"])
+# Ignition points and heats of combustion are properties of each material
+# (world/materials_data.py, with their sources). Four declarations here
+# duplicated them and nothing read them; the parameter audit removed them.
 
 R.declare("burn_rate_coefficient", "N", "kg s^-1 m^-2", 0.011, 0.001, 0.05,
           "mass loss per unit burning surface; lumps pyrolysis and "

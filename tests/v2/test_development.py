@@ -190,6 +190,14 @@ def test_reproduction_models_no_motivation():
         assert not hits, f"reproduction models motivation: {hits}"
 
 
+def test_nursing_costs_energy_until_it_ends():
+    """Lactation draws power while a child nurses and none after; the cost
+    comes from the same store as everything else."""
+    assert REP.lactation_power_w(YEAR) == R.get("lactation_extra_power_w")
+    assert REP.lactation_power_w(YEAR) > 0.0
+    assert REP.lactation_power_w(0.0) == 0.0
+
+
 def _run_all():
     ok = fail = 0
     for name, fn in sorted(globals().items()):
