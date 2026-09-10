@@ -25,6 +25,7 @@ import zimulation.behavior.params  # noqa: F401  (declares on import)
 import zimulation.biology.params  # noqa: F401
 import zimulation.cognition.params  # noqa: F401
 import zimulation.world.params  # noqa: F401
+from tests.v2.babble import Babbler
 from zimulation.behavior import primitives as PR
 from zimulation.behavior import skills as SK
 from zimulation.biology import genetics as G
@@ -244,103 +245,11 @@ def test_every_skill_records_where_it_came_from():
 
 # ------------------------------------------------- real physics, babbling
 def _babble(acts, seed):
-    """
-    An adult with a hammerstone, a stick and a supply of flint cores, acting
-    at random. The loop only chooses acts at random and keeps the scene
-    tidy; the agent perceives each new thing by touch, learns from it
-    (cognition.concepts), and remembers which thing it filed where. The
-    first version only categorised without learning, so every category
-    stayed at its first member and a flake, a core and a cobble all fell
-    into one kind -- and this test passed for that degenerate reason.
-    Returns the skills, the stone-breaking ones, and the act at which the
-    first of those was stored.
-    """
-    terr = Terrain(6, Streams(1).get("t"))
-    a = PR.Actor(1, P.Body(mass_kg=60.0, age_s=27.0 * YEAR),
-                 G.founder(Streams(1).get("g")), terr.at(2, 2))
-    see, rng, knap = (Streams(seed).get(n) for n in ("see", "babble", "k"))
-    concepts, labels = K.Concepts(1), {}
-
-    def lay(name, mass, length):
-        a.cell.things.append(O.Thing(None, MATERIALS[name], mass, length,
-                                     position=a.here))
-
-    def kind(th, t):
-        if id(th) not in labels:
-            f = PC.sense_thing(th, a.cell, a.cell, None, t, 1.0, 0.0, see,
-                               touching=True).features
-            c = concepts.learn(f, {}, t)
-            labels[id(th)] = (th, c.id)
-        return labels[id(th)][1]
-
-    def state(t):
-        st = Counter()
-        for th in a.held:
-            st[("held", kind(th, t))] += 1
-        for th in a.cell.things:
-            st[("near", kind(th, t))] += 1
-        return st
-
-    def piece_kinds():
-        """The agent's own kinds that, as only the observer can see,
-        consist mostly of pieces broken off flint, sharp ones among them."""
-        members = {}
-        for th, lab in labels.values():
-            if th.mass_kg > 0.0:
-                members.setdefault(lab, []).append(th)
-        out = set()
-        for lab, things in members.items():
-            pieces = [th for th in things
-                      if th.material.name == "flint" and th.mass_kg < 0.3]
-            if (2 * len(pieces) > len(things)
-                    and any(th.cutting_power > 0.2 for th in pieces)):
-                out.add(lab)
-        return out
-
-    def knapping(sk):
-        sharp = {("near", k) for k in piece_kinds()}
-        return [s for s in sk.items
-                if any(act == "strike" for act, _ in s.steps)
-                and any(c.effect[0] & sharp for c in sk.effects(s))]
-
-    lay("granite", 0.8, 0.12)
-    lay("hardwood", 0.4, 0.6)
-    sk, first = SK.Skills(1), None
-    sk.begin(state(0))
-    for t in range(1, acts + 1):
-        # the scene: a fresh core when none is left, small pieces carried off
-        changed = False
-        if not any(th.material.name == "flint" and th.mass_kg >= 0.3
-                   for th in a.held + a.cell.things):
-            lay("flint", 0.6, 0.12)
-            changed = True
-        for th in [th for th in a.cell.things
-                   if th.material.name == "flint" and th.mass_kg < 0.3]:
-            a.cell.things.remove(th)
-            changed = True
-        if changed:
-            sk.begin(state(t))
-        choice = rng.choice(("grasp", "release", "strike"))
-        step = act = None
-        if choice == "grasp" and a.cell.things:
-            th = rng.choice(a.cell.things)
-            step, act = SK.Step("grasp", [kind(th, t)]), PR.grasp(a, th)
-        elif choice == "release" and a.held:
-            th = rng.choice(a.held)
-            step, act = SK.Step("release", [kind(th, t)]), PR.release(a, th)
-        elif choice == "strike" and a.held:
-            x = rng.choice(a.held)
-            others = [o for o in a.held + a.cell.things if o is not x]
-            if others:
-                y = rng.choice(others)
-                step = SK.Step("strike", [kind(x, t), kind(y, t)])
-                act = PR.strike(a, x, y, knap)
-        if act is None or not act.done:
-            continue
-        sk.record(step, state(t), t, trace_id=t)
-        if first is None and knapping(sk):
-            first = t
-    return sk, knapping(sk), first
+    """Babble with the shared harness (tests/v2/babble.py). Returns the
+    skills, the stone-breaking ones, and the act at which the first of
+    those was stored."""
+    b = Babbler(seed).babble(acts)
+    return b.sk, b.knapping(), b.first
 
 
 def test_breaking_stone_into_sharp_pieces_is_found_not_given():

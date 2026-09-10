@@ -39,3 +39,5 @@ jobs:
         run: python -m tests.v2.test_thermal
       - name: Skills
         run: python -m tests.v2.test_skills
+      - name: Planning
+        run: python -m tests.v2.test_planning

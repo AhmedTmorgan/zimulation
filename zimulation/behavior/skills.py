@@ -450,6 +450,41 @@ class Skills:
         return sorted(self._qualifying(skill.basis),
                       key=lambda c: (-c.reliability, c.serial))
 
+    def _expectation(self, routine):
+        """What a run reliably changes: every part of its change that has
+        followed it reliably, and the chance of the least reliable part."""
+        need = R.get("skill_min_repetitions")
+        floor = R.get("skill_min_reliability")
+        sure = [c for c in routine.cands.values()
+                if c.attempts >= need and c.reliability >= floor]
+        if not sure:
+            return None
+        up = frozenset().union(*(c.effect[0] for c in sure))
+        down = frozenset().union(*(c.effect[1] for c in sure))
+        return (up, down), min(c.reliability for c in sure)
+
+    def operators(self, state):
+        """
+        What this agent expects it could do from here and what each would
+        change: single acts it has seen change things from a situation like
+        this one, and stored procedures whose starting situation is present.
+        Each comes as (step, change, chance). Its own experience is all it
+        has: acts never tried, and changes seen too seldom, are absent.
+        """
+        here = _present(Counter(state))
+        out = []
+        for routine in self._routines.values():
+            if len(routine.steps) == 1 and routine.pre <= here:
+                exp = self._expectation(routine)
+                if exp is not None:
+                    out.append((routine.steps[0], exp[0], exp[1]))
+        for s in self.items:
+            if s.pre <= here:
+                exp = self._expectation(s.basis)
+                if exp is not None:
+                    out.append(((s.id, s.roles), exp[0], exp[1]))
+        return out
+
     def applicable(self, state):
         """The procedures whose starting situation is present now."""
         here = _present(Counter(state))

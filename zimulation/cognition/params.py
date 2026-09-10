@@ -239,3 +239,22 @@ R.declare("concept_example_cap", "N", "examples", 30.0, 3.0, 500.0,
           "modelling choice: how many example and counterexample records "
           "a category keeps; a computational bound", "order of magnitude",
           ["cognition.concepts"])
+
+# --------------------------------------------------------------- planning
+R.declare("planning_horizon_steps", "H", "steps", 4.0, 1.0, 20.0,
+          "H: how many steps ahead an agent can imagine. Under test: do "
+          "short horizons produce avoidable decision loss and repeated "
+          "failure (section 15)? The default matches working memory",
+          "under test", ["cognition.planning"])
+
+R.declare("planning_budget_nodes", "N", "situations", 60.0, 5.0, 5000.0,
+          "modelling choice: how many imagined situations one planning "
+          "episode may examine -- limited computation (section 15); a "
+          "bound, not a measured quantity", "order of magnitude",
+          ["cognition.planning"])
+
+R.declare("plan_aspiration", "S", "probability", 0.6, 0.05, 0.99,
+          "modelling choice: predicted chance at which a plan is good "
+          "enough and search stops -- satisficing (Simon 1956, "
+          "Psychological Review 63:129)", "modelling choice",
+          ["cognition.planning"])
