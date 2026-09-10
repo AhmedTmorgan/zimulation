@@ -2,13 +2,13 @@
 Open-ended agent integration.
 
 The existing arbitration machinery already provides drives, learned
-remedies, planning, categories and skill chunking.  This module extends it
+remedies, planning, categories and skill chunking. This module extends it
 only where the physical repertoire had outrun the actions the agent could
-actually explore.  It deliberately reuses the existing Agent rather than
+actually explore. It deliberately reuses the existing Agent rather than
 rebuilding cognition.
 
 Rubbing, separating and combining are offered as blind sensorimotor
-experiments.  Their success is still decided exclusively by world physics.
+experiments. Their success is still decided exclusively by world physics.
 The agent receives no hint that rubbing can produce heat, that a sharp edge
 can separate matter, or that a flexible strand can hold two objects.
 """
@@ -16,8 +16,10 @@ can separate matter, or that a flexible strand can hold two objects.
 from __future__ import annotations
 
 from ..core.parameters import REGISTRY as R
+from ..world import contact as CT
 from . import affordances as AF
 from . import primitives as PR
+from . import skills as SK
 from .arbitration import Agent as _Agent
 
 
@@ -33,6 +35,8 @@ class Agent(_Agent):
 
         a = self.actor
         if act == "rub":
+            if not CT.rubbing_contact_exists(targets[0], targets[1]):
+                return PR.Act("rub", 0, 0.0, {"refused": "no contact area"})
             done = PR.rub(a, targets[0], targets[1], R.get("turn_min_s"),
                           self.knap, now=time)
         elif act == "separate":
@@ -44,10 +48,8 @@ class Agent(_Agent):
             return done
         self.acts += 1
         roles = [self.kind(t, time) for t in targets]
-        for sk in self.skills.record(
-                __import__("zimulation.behavior.skills", fromlist=["Step"]).Step(
-                    act, roles),
-                self.state(time), time, trace_id=time):
+        for sk in self.skills.record(SK.Step(act, roles), self.state(time),
+                                     time, trace_id=time):
             self.news.append(("skill", sk.id))
         return done
 
@@ -78,7 +80,7 @@ class Agent(_Agent):
     def _pursue(self, drive, signals, terrain, time):
         """
         Until multi-object remedy planning exists, do not mis-handle a
-        two-object act as if it had one target.  Such acts remain available
+        two-object act as if it had one target. Such acts remain available
         through exploration and learned procedures.
         """
         hidden = []
@@ -95,7 +97,7 @@ class Agent(_Agent):
         """Choose blindly among the physical affordances present here."""
         offered = AF.available(self.actor, terrain)
         # The primitive layer is deliberately broader than this integration
-        # stage.  Throwing and dragging are already real physics, but their
+        # stage. Throwing and dragging are already real physics, but their
         # destination-bearing roles need a spatial skill representation
         # before they should enter learned action sequences.
         allowed = {
