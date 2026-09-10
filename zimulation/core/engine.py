@@ -23,7 +23,7 @@ The engine decides nothing for anyone. It keeps time and applies physics.
 from __future__ import annotations
 
 from ..behavior import primitives as PR
-from ..behavior.open_agent import Agent
+from ..behavior.perceptual_agent import Agent
 from ..biology import genetics as G
 from ..biology import physiology as PHY
 from ..core.parameters import REGISTRY as R
