@@ -152,13 +152,26 @@ class Body:
             R.get("sleep_debt_impairment_h") * HOUR))
         d = min(1.0, self.water_fraction_lost
                 / R.get("dehydration_lethal_fraction"))
-        return min(1.0,
+        base = min(1.0,
                    R.get("impairment_weight_sleep") * s
                    + R.get("impairment_weight_pain") * self.pain
                    + R.get("impairment_weight_thirst") * d)
+        # A cooling core takes the mind with it: confusion as shivering
+        # begins to fail, stupor by the time it stops (Danzl & Pozos 1994).
+        return max(base, 1.0 - shivering_capacity(self))
 
 
 # ------------------------------------------------------------- metabolism
+def shivering_capacity(body):
+    """Fraction of full shivering the body can still mount: all of it above
+    the core temperature where it begins to fail, none below where it
+    stops."""
+    full = R.get("shivering_full_core_k")
+    stop = R.get("shivering_stop_core_k")
+    span = max(R.get("division_epsilon"), full - stop)
+    return max(0.0, min(1.0, (body.core_temperature_k - stop) / span))
+
+
 def resting_rate_w(body):
     """
     Resting metabolic rate, scaled from the reference mass by Kleiber.
@@ -220,8 +233,15 @@ def thermoregulate(body, ambient_k, dt_s, wind_factor=1.0,
         deficit = -(surplus - shed)
 
     if deficit > 0.0:
-        # Shivering: the body burns more to close the gap, up to a limit.
-        ceiling = basal * (R.get("shivering_max_multiplier") - 1.0)
+        # Shivering: the body burns more to close the gap, up to a limit --
+        # and the limit falls as the core itself cools. Shivering is full
+        # down to about 35 C and gone by about 30 C (Mallet 2002; Danzl &
+        # Pozos 1994), which is why deep hypothermia runs away. The first
+        # version shivered at full strength at any core temperature, so a
+        # bare, fed body at -1 C settled at a 29 C core and lived seventeen
+        # days until its fat ran out.
+        ceiling = (basal * (R.get("shivering_max_multiplier") - 1.0)
+                   * shivering_capacity(body))
         shiver = min(deficit, ceiling)
         extra_j = shiver * dt_s
         produced += shiver

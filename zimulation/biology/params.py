@@ -379,3 +379,14 @@ R.declare("emptiness_hunger_weight", "S", "dimensionless", 0.5, 0.0, 1.0,
           "Diabetes 50:1714) -- that make a well-nourished person hungry "
           "within hours of eating", "modelling choice",
           ["cognition.perception"])
+
+# ------------------------------------------------------------ hypothermia
+R.declare("shivering_full_core_k", "B", "K", 308.15, 306.0, 310.0,
+          "core temperature down to which shivering stays at full strength, "
+          "about 35 C, the threshold of mild hypothermia (Mallet 2002, "
+          "QJM 95:775)", "+/-1 K", ["biology.physiology"])
+
+R.declare("shivering_stop_core_k", "B", "K", 303.15, 301.0, 305.0,
+          "core temperature below which shivering ceases and stupor sets "
+          "in, about 30 C (Danzl & Pozos 1994, New England Journal of "
+          "Medicine 331:1756)", "+/-1.5 K", ["biology.physiology"])

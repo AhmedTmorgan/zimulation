@@ -289,6 +289,51 @@ def test_hunger_returns_hours_after_a_meal():
     assert later - sated > 0.25, (sated, later)
 
 
+# ------------------------------------------------------------ hypothermia
+def _fed_hours(ambient_k, hours):
+    """A bare adult, fed and watered three times a day, at a constant
+    temperature. Returns the body and the hours it lived."""
+    b, h = P.Body(), 0
+    while b.alive and h < hours:
+        if h % 8 == 0:
+            P.feed(b, 0.9, 3.2e6, water_fraction=0.6)
+            P.feed(b, 0.5, 0.0, water_fraction=1.0)
+        P.step(b, HOUR, ambient_k)
+        h += 1
+    return b, h
+
+
+def test_shivering_fails_as_the_core_cools():
+    """Full shivering down to about 35 C core, none by about 30 C, and a
+    body that cold can no longer act (Danzl & Pozos 1994)."""
+    b = P.Body()
+    assert P.shivering_capacity(b) == 1.0 and b.impairment < 0.1
+    b.core_temperature_k = R.get("shivering_stop_core_k")
+    assert P.shivering_capacity(b) == 0.0
+    assert b.impairment == 1.0, "a body at a 30 C core could still act"
+
+
+def test_freezing_air_kills_a_bare_fed_body_within_a_day():
+    """
+    At -1 C a bare adult cannot shiver enough; its core falls, shivering
+    fails and hypothermia runs away -- in hours. The first version let a
+    body shiver at full strength at any core temperature, and a bare, fed,
+    watered adult lived seventeen days at -1 C, dying at last of hunger.
+    """
+    b, hours = _fed_hours(272.15, 72)
+    assert not b.alive and b.cause == "core_temperature_low", b.cause
+    assert hours <= 24, f"a bare body survived {hours} h at -1 C"
+
+
+def test_moderate_cold_is_a_food_problem_not_a_temperature_one():
+    """At 10 C shivering still keeps up: the core holds and the cost is
+    paid in fuel."""
+    fat0 = P.Body().fat_kg
+    b, _ = _fed_hours(283.15, 72)
+    assert b.alive and b.core_temperature_k > R.get("shivering_full_core_k")
+    assert b.fat_kg < fat0, "three days at 10 C cost nothing"
+
+
 def _run_all():
     ok = fail = 0
     for name, fn in sorted(globals().items()):
