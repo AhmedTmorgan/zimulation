@@ -24,12 +24,18 @@ pull toward the unknown that wins only when nothing else presses (Berlyne
 
 For every act on every kind of thing, the agent keeps how each bodily
 signal changed over a bout of that act. A remedy for a drive is an act on a
-kind whose mean change in the drive's signal stays below zero by a declared
-number of standard errors, after a declared least number of bouts. One
-lucky coincidence is not taken for a cure, and a cure tried once is not yet
-trusted. Across many acts and kinds the rule still admits occasional false
-remedies -- the test measures how often -- and those are left for the agent
-to discover wrong, or not.
+kind whose mean change in the drive's signal is below zero with a one-sided
+p-value, by Student's t for the bouts actually seen (Student 1908), no
+larger than a declared false-alarm chance, after a declared least number of
+bouts. One lucky coincidence is not taken for a cure, and a cure tried once
+is not yet trusted. Across many acts and kinds the rule still admits false
+remedies at about the declared rate, and those are left for the agent to
+discover wrong, or not.
+
+The first version compared the mean with two standard errors as if the
+spread were known. With three to five bouts the spread is itself uncertain,
+and useless acts were taken for remedies 5.4% of the time instead of the
+2.3% intended. The exact t tail repairs it.
 
 ## Provenance
 
@@ -42,6 +48,40 @@ from __future__ import annotations
 import math
 
 from ..core.parameters import REGISTRY as R
+
+
+def t_within(t, dof):
+    """
+    P(|T| <= t) for Student's t with a whole number of degrees of freedom,
+    by the closed series of Abramowitz & Stegun (1964), 26.7.3 and 26.7.4.
+    """
+    theta = math.atan(abs(t) / math.sqrt(dof))
+    c, s = math.cos(theta), math.sin(theta)
+    if dof % 2 == 1:
+        total, term, k = 0.0, c, 1
+        if dof > 1:
+            total = term
+            while 2 * k + 1 <= dof - 2:
+                term *= c * c * (2 * k) / (2 * k + 1)
+                total += term
+                k += 1
+        return 2.0 / math.pi * (theta + s * total)
+    total, term, k = 1.0, 1.0, 1
+    while 2 * k <= dof - 2:
+        term *= c * c * (2 * k - 1) / (2 * k)
+        total += term
+        k += 1
+    return s * total
+
+
+def below_zero_p(mean, se, n):
+    """One-sided p-value that a mean of n values is below zero only by
+    chance."""
+    if mean >= 0.0:
+        return 1.0
+    if se <= 0.0:
+        return 0.0
+    return 0.5 * (1.0 - t_within(mean / se, n - 1))
 
 #: Each bodily drive and the interoceptive signal it reads.
 SIGNALS = {"hunger": "hunger", "thirst": "thirst", "cold": "cold",
@@ -115,12 +155,12 @@ class Goals:
     def remedies(self, drive):
         """
         Acts on kinds that have reliably lowered this drive's signal, the
-        most relieving first: (act, kind, mean change, upper bound).
+        most relieving first: (act, kind, mean change, p-value).
         """
         sig = SIGNALS.get(drive)
         if sig is None:
             return []
-        z = R.get("relief_confidence_z")
+        alarm = R.get("relief_false_alarm")
         need = R.get("relief_min_bouts")
         out = []
         for (act, kind), r in self.reliefs.items():
@@ -128,7 +168,8 @@ class Goals:
             if ch is None:
                 continue
             mean, se, n = ch
-            if n >= need and mean + z * se < 0.0:
-                out.append((act, kind, mean, mean + z * se))
+            p = below_zero_p(mean, se, n)
+            if n >= need and p <= alarm:
+                out.append((act, kind, mean, p))
         out.sort(key=lambda x: (x[2], repr(x[0]), repr(x[1])))
         return out

@@ -266,10 +266,13 @@ R.declare("curiosity_baseline", "S", "dimensionless", 0.15, 0.0, 1.0,
           "else presses (Berlyne 1960; Oudeyer & Kaplan 2007, Frontiers in "
           "Neurorobotics 1:6)", "modelling choice", ["cognition.goals"])
 
-R.declare("relief_confidence_z", "S", "standard errors", 2.0, 0.5, 4.0,
-          "modelling choice: standard errors by which a bout's mean change "
-          "in a bodily signal must stay below zero for the act to count as "
-          "a remedy", "modelling choice", ["cognition.goals"])
+R.declare("relief_false_alarm", "S", "probability", 0.025, 0.001, 0.2,
+          "modelling choice: the chance, on any one check, of taking an act "
+          "that does nothing for a remedy -- exact for normal noise, by "
+          "Student's t for the bouts seen (Student 1908). Replaces two "
+          "standard errors used as if the spread were known, which let 5.4% "
+          "of useless acts through instead of 2.3%", "modelling choice",
+          ["cognition.goals"])
 
 R.declare("relief_min_bouts", "S", "bouts", 3.0, 2.0, 20.0,
           "modelling choice: least number of bouts before an act on a kind "
