@@ -17,6 +17,7 @@ from __future__ import annotations
 import math
 
 from ..core.parameters import REGISTRY as R
+from . import thermal as TH
 
 
 class Thing:
@@ -145,22 +146,27 @@ def strike(striker, target, energy_j, stream):
     return fragments
 
 
-def rub(a, b, normal_force_n, speed_m_s, dt_s, stream):
+def rub(a, b, normal_force_n, speed_m_s, dt_s, stream, stroke_m=0.0,
+        env_k=None):
     """
-    Two objects rubbed together. Returns (heat_j, the object that heated).
+    Two objects rubbed together for dt seconds, the contact sweeping back
+    and forth over stroke_m. Returns (heat_j, the softer object, contact),
+    where contact records how hot the interface got (world.thermal).
 
-    The softer surface heats. Whether that heat reaches an ignition
-    temperature depends on force, speed, duration and material, which is
-    why originating combustion this way is difficult and why succeeding
-    is a meaningful event rather than a button press.
+    Friction work becomes heat at the interface. How it divides between
+    the two bodies, how hot the contact gets, and how much each body warms
+    while losing heat to its surroundings are thermal physics. Whether the
+    contact ever reaches an ignition temperature depends on force, speed,
+    duration, stroke, moisture and material, which is why originating
+    combustion this way is difficult and why succeeding is a meaningful
+    event rather than a button press.
     """
     from .combustion import friction_energy
+    env = R.get("ambient_temperature") if env_k is None else env_k
     soft = a if a.material.hardness <= b.material.hardness else b
     mu = R.get("friction_coefficient_dry")
     heat = friction_energy(normal_force_n, speed_m_s, dt_s, mu)
     heat *= stream.uniform(R.get("friction_jitter_low"),
                            R.get("friction_jitter_high"))
-    soft.temperature_k += heat / max(R.get("division_epsilon"),
-                                     soft.mass_kg
-                                     * soft.material.specific_heat)
-    return heat, soft
+    contact = TH.rub_contact(a, b, heat, dt_s, stroke_m, env)
+    return heat, soft, contact

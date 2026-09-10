@@ -116,3 +116,18 @@ R.declare("toxic_damage_per_kg", "S", "dimensionless", 1.0, 0.0, 20.0,
           "modelling choice: tissue damage per kilogram ingested of a "
           "material at full toxicity, in whole-body units",
           "modelling choice", ["behavior.primitives"])
+
+# ---------------------------------------------------------------- rubbing
+R.declare("max_stroke_frequency_hz", "B", "Hz", 5.0, 2.0, 8.0,
+          "fastest sustained back-and-forth of hand and forearm; rapid "
+          "alternating movements run at about five to seven cycles a "
+          "second in healthy adults (diadochokinesis norms)",
+          "+/-1.5 Hz", ["behavior.primitives"])
+
+R.declare("rub_stroke_m", "B", "m", 0.2, 0.02, 0.5,
+          "length of a comfortable back-and-forth rubbing stroke of the "
+          "forearm", "+/-0.1 m", ["behavior.primitives"])
+
+R.declare("max_stroke_m", "B", "m", 0.5, 0.2, 0.8,
+          "longest rubbing stroke an arm makes without moving the body, "
+          "about forearm plus hand", "+/-0.1 m", ["behavior.primitives"])

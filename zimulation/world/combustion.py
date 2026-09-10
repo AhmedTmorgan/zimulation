@@ -36,6 +36,7 @@ moisture fraction it will not sustain a flame at all.
 from __future__ import annotations
 
 from ..core.parameters import REGISTRY as R
+from .thermal import add_heat, depth_reaching
 
 
 class Combusting:
@@ -111,21 +112,12 @@ def try_ignite(obj, energy_j, at_time, oxygen_fraction=None):
         return None
     if energy_j < need:
         # Not enough to ignite, but the energy is not wasted: it warms the
-        # object and drives off water. Repeated attempts therefore
-        # accumulate, which is why persistence at rubbing can succeed where
-        # a single stroke cannot -- and why a wet stick eventually dries.
-        mat = obj.material
-        eps = R.get("division_epsilon")
-        obj.temperature_k += energy_j / max(eps, obj.mass_kg
-                                            * mat.specific_heat)
-        # Drying is real thermodynamics, not a fudge: the water held in
-        # the object must absorb its latent heat before it leaves.
-        water_kg = obj.moisture * obj.mass_kg
-        if water_kg > 0.0:
-            latent = R.get("latent_heat_vaporisation_water")
-            evaporated = min(water_kg, energy_j / latent)
-            obj.moisture = max(0.0, (water_kg - evaporated)
-                               / max(eps, obj.mass_kg))
+        # object and, once at the boiling point, drives off its water at
+        # the latent heat. The first version spent the same joules twice,
+        # warming with them and then evaporating with them too. Attempts
+        # in quick succession accumulate; with time between them the
+        # object cools (world.thermal), so persistence must be sustained.
+        add_heat(obj, energy_j)
         return None
     obj.temperature_k = obj.material.ignition_point
     obj.burning = Combusting(obj, at_time)
@@ -216,3 +208,45 @@ def friction_energy(normal_force_n, speed_m_s, dt_s, friction_coefficient):
     """
     work = normal_force_n * friction_coefficient * speed_m_s * dt_s
     return work * R.get("friction_heat_efficiency")
+
+
+def ignite_contact(contact, at_time, oxygen_fraction=None):
+    """
+    Whether a rubbed contact left a smouldering mass of heated surface.
+
+    Where the contact passed a combustible surface's ignition temperature,
+    the material heated past that point -- a thin disc under the contact,
+    as deep as the heat front carried the ignition temperature -- becomes a
+    separate small object, smouldering. Returns it, or None. It is small
+    and flameless; left alone it burns out, and whether it ever becomes
+    anything more depends on what it is put beside.
+    """
+    from .objects import Thing
+    if not contact.dry or contact.peak_k <= contact.start_k:
+        return None
+    bodies = contact.bodies
+    order = sorted(range(len(bodies)), key=lambda i: (
+        bodies[i].material.ignition_point is None,
+        bodies[i].material.ignition_point or 0.0, i))
+    for i in order:
+        body = bodies[i]
+        mat = body.material
+        if mat.ignition_point is None or contact.peak_k < mat.ignition_point:
+            continue
+        if not can_sustain(body, oxygen_fraction):
+            continue
+        fraction = ((mat.ignition_point - contact.start_k)
+                    / (contact.peak_k - contact.start_k))
+        depth = depth_reaching(fraction, mat, contact.duration_s)
+        mass = min(body.mass_kg, mat.density * contact.areas[i] * depth)
+        if mass <= 0.0:
+            continue
+        ember = Thing(None, mat, mass, depth, contact.peak_k, 0.0,
+                      body.position)
+        lit = try_ignite(ember, 0.0, at_time, oxygen_fraction)
+        if lit is None:
+            continue
+        body.mass_kg -= mass
+        lit.smouldering = True
+        return ember
+    return None

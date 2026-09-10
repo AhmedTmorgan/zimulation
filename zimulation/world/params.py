@@ -33,6 +33,16 @@ R.declare("convective_coefficient", "N", "W m^-2 K^-1", 12.0, 2.0, 50.0,
           "boundary-layer calculation, order of magnitude only",
           "order of magnitude", ["world.thermal"])
 
+R.declare("surface_emissivity", "P", "dimensionless", 0.9, 0.7, 0.99,
+          "longwave emissivity of natural non-metallic surfaces; wood, "
+          "stone, soil and skin all lie near 0.9 (standard tables, e.g. "
+          "Incropera & DeWitt, Fundamentals of Heat and Mass Transfer)",
+          "+/-0.05", ["world.thermal"])
+
+R.declare("boiling_point_water_k", "P", "K", 373.15, 340.0, 380.0,
+          "boiling point of water at sea-level pressure; about 3 K lower "
+          "per 1000 m of altitude", "exact at 1 atm", ["world.thermal"])
+
 # ------------------------------------------------------------ combustion
 R.declare("ignition_temperature_dry_plant", "P", "K", 570.0, 470.0, 650.0,
           "piloted ignition of dry cellulosic material (Babrauskas 2003)",
@@ -123,10 +133,14 @@ R.declare("gravity", "P", "m s^-2", 9.81, 9.7, 9.9,
           "standard surface gravity", "negligible",
           ["world.mechanics"])
 
-R.declare("friction_heat_efficiency", "N", "dimensionless", 0.35, 0.05, 0.8,
-          "modelling choice: the share of rubbing work that stays as heat "
-          "in the contact zone; order of magnitude, not measured",
-          "order of magnitude", ["world.mechanics"])
+R.declare("friction_heat_efficiency", "P", "dimensionless", 0.95, 0.8, 1.0,
+          "share of the work done against friction that appears as heat at "
+          "the interface; nearly all of it does, a few percent going into "
+          "wear and new surface (Bowden & Tabor 1950, The Friction and "
+          "Lubrication of Solids). The first value, 0.35, stood in for heat "
+          "conducting away from the contact, which world.thermal now "
+          "computes explicitly -- keeping it would count that loss twice",
+          "+/-0.05", ["world.mechanics", "world.thermal"])
 
 R.declare("fracture_energy_scale", "N", "J kg^-1", 25.0, 5.0, 200.0,
           "impact energy per kilogram of target at which a brittle solid "

@@ -24,7 +24,8 @@ less far, without any rule saying either.
 And each has its effect only through the world's own physics. A strike
 delivers kinetic energy to `objects.strike`, which decides whether
 anything fractures. A rub delivers heat to `objects.rub`; whether
-anything catches is decided by `combustion.try_ignite`. No primitive
+anything catches is decided by the contact's thermal physics and
+`combustion.ignite_contact`. No primitive
 creates combustion, an edge or a meal by assignment; a test checks that
 this module never sets anything burning directly.
 
@@ -310,22 +311,35 @@ def strike(actor, striker, target, stream):
                {"fragments": len(fragments), "impact_j": impact})
 
 
-def rub(actor, a, b, duration_s, stream, now=0):
+def rub(actor, a, b, duration_s, stream, now=0, stroke_m=None):
     """
-    Rub one held thing against another for a while. Friction heats the
-    softer surface; whether it catches is for the combustion physics to
-    decide, never this function.
+    Rub one held thing against another for a while, the hand moving back
+    and forth over a stroke. Friction heats the contact; whether anything
+    catches is for the thermal and combustion physics to decide, never
+    this function.
+
+    An arm cannot oscillate faster than a few strokes a second, so a short
+    stroke is a slow one; a long stroke is fast but spreads its heat along
+    the track. That trade-off belongs to the body and the world. Nothing
+    here says which stroke works.
     """
     if a not in actor.held or not _reachable(actor, b) or a is b:
         return _refuse("rub", "out of reach")
+    stroke = R.get("rub_stroke_m") if stroke_m is None else stroke_m
+    stroke = min(max(0.0, stroke), R.get("max_stroke_m"))
     force = R.get("rub_force_n") * actor.capacity
-    speed = R.get("rub_speed_m_s") * actor.capacity
-    heat, soft = O.rub(a, b, force, speed, duration_s, stream)
+    speed = min(R.get("rub_speed_m_s") * actor.capacity,
+                2.0 * stroke * R.get("max_stroke_frequency_hz"))
+    heat, _, contact = O.rub(a, b, force, speed, duration_s, stream,
+                             stroke_m=stroke, env_k=actor.cell.temperature_k)
     work = force * R.get("friction_coefficient_dry") * speed * duration_s
     energy = _charge(actor, work)
-    caught = C.try_ignite(soft, 0.0, now)
+    ember = C.ignite_contact(contact, now)
+    if ember is not None:
+        _put_down(actor, ember)
     return Act("rub", duration_s, energy,
-               {"heat_j": heat, "burning": caught is not None})
+               {"heat_j": heat, "contact_k": contact.peak_k,
+                "burning": ember is not None, "ember": ember})
 
 
 def separate(actor, cutter, target, stream):

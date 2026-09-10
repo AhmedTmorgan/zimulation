@@ -74,8 +74,9 @@ def test_wet_fuel_costs_more_and_past_a_point_cannot_burn():
 
 def test_failed_attempts_accumulate_heat_and_dry_the_fuel():
     """
-    Persistence pays, which is what makes originating combustion a thing
-    an agent can stumble into by repetition rather than insight.
+    Persistence pays -- in quick succession. The energy here arrives with
+    no time between attempts; with time between them the object cools
+    (world.thermal, tested there), so persistence has to be sustained.
     """
     stick = _thing("softwood", mass=0.05, length=0.4, moisture=0.20)
     start_t, start_m = stick.temperature_k, stick.moisture
