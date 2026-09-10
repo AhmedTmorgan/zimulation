@@ -51,5 +51,7 @@ jobs:
         run: python -m tests.v2.test_ecology
       - name: Goals
         run: python -m tests.v2.test_goals
+      - name: Experiment protocol
+        run: python -m tests.v2.test_experiment_protocol
       - name: Agent
         run: python -m tests.v2.test_agent
