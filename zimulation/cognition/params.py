@@ -160,3 +160,33 @@ R.declare("belief_provenance_cap", "N", "entries", 50.0, 5.0, 1000.0,
           "modelling choice: how many evidence records a belief keeps; a "
           "computational bound, oldest dropped first",
           "order of magnitude", ["cognition.belief"])
+
+# ------------------------------------------------------- causal inference
+R.declare("causal_evidence_threshold", "H", "trials", 5.0, 1.0, 100.0,
+          "H: how many trials an agent needs before it treats a "
+          "contingency as settled. Under test: is superstition the price "
+          "of learning fast? Few trials means quick lessons and more "
+          "false ones", "under test", ["cognition.causal_inference"])
+
+R.declare("causal_delta_threshold", "S", "dimensionless", 0.15, 0.01, 0.5,
+          "modelling choice: how large a difference in outcome rate counts "
+          "as an effect rather than noise", "modelling choice",
+          ["cognition.causal_inference"])
+
+R.declare("contingency_prior_count", "S", "trials", 2.0, 0.1, 20.0,
+          "modelling choice: pseudo-count smoothing every rate toward the "
+          "prior -- how firmly a mind holds its assumption before evidence",
+          "modelling choice", ["cognition.causal_inference"])
+
+R.declare("baseline_prior_rate", "S", "dimensionless", 0.1, 0.0, 1.0,
+          "modelling choice: what an agent with no comparison assumes "
+          "happens anyway. Set low, a mind without controls credits every "
+          "outcome to its own action -- the illusion of control "
+          "(Langer 1975)", "modelling choice",
+          ["cognition.causal_inference"])
+
+R.declare("causal_window_s", "S", "s", 21600.0, 1.0, 604800.0,
+          "modelling choice: how long after a candidate cause an outcome "
+          "may follow and still be linked to it; long enough to connect "
+          "eating to later sickness (Garcia & Koelling 1966)",
+          "modelling choice", ["cognition.causal_inference"])
