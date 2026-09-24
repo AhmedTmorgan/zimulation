@@ -471,6 +471,48 @@ def rest(actor, duration_s):
     return Act("rest", duration_s, 0.0, {"resting": True})
 
 
+# ---------------------------------------------------------- between bodies
+def give(actor, thing, other):
+    """
+    Place a held thing at another agent's cell, within their reach.
+    Whether what follows is exchange, charity, or bait for a trap is not
+    this function's affair.
+    """
+    if thing not in actor.held:
+        return _refuse("give", "not held")
+    if other.cell is not actor.cell:
+        return _refuse("give", "not nearby")
+    actor.held.remove(thing)
+    _put_down(other, thing)
+    return Act("give", R.get("give_duration_s"), 0.0, {"given": True})
+
+
+def strike_body(actor, striker, other, stream):
+    """
+    Hit another agent's body with a held thing. The blow's kinetic energy
+    causes damage through the body's physics; the other drops what it was
+    holding from the force of the impact. Whether this constitutes
+    aggression, defense, play or accident is for the observer.
+    """
+    if striker not in actor.held:
+        return _refuse("strike_body", "striker not held")
+    if other.cell is not actor.cell:
+        return _refuse("strike_body", "not nearby")
+    speed = R.get("strike_speed_m_s") * actor.capacity
+    impact = 0.5 * striker.mass_kg * speed * speed
+    energy = _charge(actor, impact)
+    damage = impact * R.get("body_strike_damage_per_j")
+    PHY.injure(other.body, damage)
+    dropped = impact >= R.get("flinch_drop_threshold_j")
+    if dropped:
+        for t in list(other.held):
+            other.held.remove(t)
+            _put_down(other, t)
+    PHY.check_viability(other.body)
+    return Act("strike_body", _quick(), energy,
+               {"impact_j": impact, "damage": damage, "dropped": dropped})
+
+
 #: The whole repertoire. Every name is something a body does to the world;
 #: none is something a culture does. Carrying is moving with something in
 #: hand; placing is releasing; pushing and pulling are applying force.
@@ -483,4 +525,5 @@ PRIMITIVES = {
     "throw": throw, "strike": strike, "rub": rub,
     "separate": separate, "combine": combine, "consume": consume,
     "emit_signal": emit_signal, "rest": rest,
+    "give": give, "strike_body": strike_body,
 }

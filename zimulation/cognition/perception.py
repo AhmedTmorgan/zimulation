@@ -147,6 +147,40 @@ def sense_ambient(cell, temperature_k, time, acuity, impairment, stream):
     }, (cell.x, cell.y))
 
 
+def sense_agent(other_body, other_cell, viewer_cell, terrain, time,
+                acuity, impairment, stream, touching=False):
+    """
+    Perceive another agent's body. What returns is what the senses
+    report: apparent size, warmth if close enough to feel, and the fact
+    that it moves -- nothing that names it as a person or gives it a role.
+    """
+    scale = _noise_scale(acuity, impairment)
+    noise = R.get("agent_perception_noise") * scale
+    weber = R.get("weber_fraction_magnitude") * scale
+    features = {}
+
+    same_cell = viewer_cell is other_cell
+    if touching or same_cell:
+        channel = TOUCH
+        features["heft"] = _relative(other_body.mass_kg, noise, stream)
+        features["warmth_felt"] = _felt_warmth(
+            other_body.core_temperature_k, scale, stream)
+    else:
+        from ..world.space import visible_from
+        if not visible_from(terrain, viewer_cell, other_cell):
+            return None
+        channel = SIGHT
+
+    features["apparent_size"] = _relative(
+        other_body.mass_kg * R.get("agent_apparent_size_m3_per_kg"),
+        weber, stream)
+    features["animate"] = _unit(
+        1.0 + stream.gauss(0.0, R.get("animate_noise_scale") * scale))
+
+    return Percept(time, channel, id(other_body), features,
+                   (other_cell.x, other_cell.y))
+
+
 def sense_body(body, time, stream):
     """
     Interoception: the body's own signals.

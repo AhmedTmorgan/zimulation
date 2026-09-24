@@ -76,9 +76,10 @@ class Bout:
     it began."""
 
     __slots__ = ("act", "kind", "targets", "before", "left", "drive",
-                 "remedy")
+                 "remedy", "other")
 
-    def __init__(self, act, kind, targets, before, left, drive, remedy):
+    def __init__(self, act, kind, targets, before, left, drive, remedy,
+                 other=None):
         self.act = act
         self.kind = kind
         self.targets = targets
@@ -86,14 +87,15 @@ class Bout:
         self.left = left
         self.drive = drive
         self.remedy = remedy
+        self.other = other
 
 
 class Agent:
     """One organism: a body that acts, and a mind that learns from it."""
 
     __slots__ = ("id", "actor", "see", "sense", "choose", "knap", "concepts",
-                 "skills", "goals", "places", "labels", "bout", "acts",
-                 "learning", "news", "trusted")
+                 "skills", "goals", "places", "labels", "agent_labels",
+                 "bout", "acts", "learning", "news", "trusted", "_nearby")
 
     def __init__(self, agent_id, actor, streams, learning=True):
         self.id = agent_id
@@ -107,11 +109,13 @@ class Agent:
         self.goals = GO.Goals(agent_id)
         self.places = PL.Places(agent_id)
         self.labels = {}
+        self.agent_labels = {}
         self.bout = None
         self.acts = 0
         self.learning = learning
         self.news = []
         self.trusted = set()
+        self._nearby = ()
 
     # ------------------------------------------------------------ perceiving
     def kind(self, thing, time):
@@ -126,6 +130,23 @@ class Agent:
                                touching=True).features
             entry = (thing, self.concepts.learn(f, {}, time).id)
             self.labels[id(thing)] = entry
+        return entry[1]
+
+    def agent_kind(self, other_actor, time):
+        """The agent's own kind for another agent's body, learned from
+        perceiving it the first time; after that it remembers the label."""
+        entry = self.agent_labels.get(other_actor.id)
+        if entry is None or entry[0] is not other_actor:
+            a = self.actor
+            p = PC.sense_agent(other_actor.body, other_actor.cell, a.cell,
+                               None, time,
+                               sensory_acuity(a.body.age_years),
+                               a.body.impairment, self.see,
+                               touching=(other_actor.cell is a.cell))
+            if p is None:
+                return None
+            entry = (other_actor, self.concepts.learn(p.features, {}, time).id)
+            self.agent_labels[other_actor.id] = entry
         return entry[1]
 
     def reach(self):
@@ -165,6 +186,10 @@ class Agent:
             done = PR.touch(a, targets[0], self.see, time)
         elif act == "strike":
             done = PR.strike(a, targets[0], targets[1], self.knap)
+        elif act == "give":
+            done = PR.give(a, targets[0], targets[1])
+        elif act == "strike_body":
+            done = PR.strike_body(a, targets[0], targets[1], self.knap)
         elif act == "move":
             done = PR.move(a, terrain, targets[0])
         else:
@@ -172,9 +197,11 @@ class Agent:
         if not done.done:
             return done
         self.acts += 1
+        if act in ("give", "strike_body") and done.done:
+            self.news.append(("social", act, targets[1].id, done.outcome))
         if act == "move":
             self.skills.begin(self.state(time))
-        elif act != "rest":
+        elif act not in ("rest", "give", "strike_body"):
             roles = [self.kind(t, time) for t in targets]
             for sk in self.skills.record(SK.Step(act, roles), self.state(time),
                                          time, trace_id=time):
@@ -320,6 +347,8 @@ class Agent:
         a, s = self.actor, self.choose
         near, held = list(a.cell.things), list(a.held)
         reach = held + near
+        nearby_actors = [ag.actor for ag in self._nearby
+                         if ag.actor.body.alive and ag.actor.cell is a.cell]
         options = ["move", "rest"]
         if near:
             options.append("grasp")
@@ -329,9 +358,8 @@ class Agent:
             options += ["consume", "touch"]
         if held and len(reach) >= 2:
             options.append("strike")
-        # An innate mouthing tendency, declared and off in the baseline: it
-        # says nothing about what to put in the mouth, only that hunger and
-        # thirst make putting things there likelier (consummatory_bias).
+        if held and nearby_actors:
+            options += ["give", "strike_body"]
         bias = R.get("consummatory_bias")
         if (bias > 0.0 and reach and drive in ("hunger", "thirst")
                 and s.random() < bias):
@@ -350,20 +378,28 @@ class Agent:
         elif act == "strike":
             x = s.choice(held)
             targets = [x, s.choice([t for t in reach if t is not x])]
+        elif act in ("give", "strike_body"):
+            other = s.choice(nearby_actors)
+            targets = [s.choice(held), other]
         else:
             targets = [s.choice(reach)]
-        if targets and act != "move":
+        if act in ("give", "strike_body"):
+            thing_kind = self.kind(targets[0], time)
+            ag_kind = self.agent_kind(targets[1], time)
+            kind = (thing_kind, ag_kind) if ag_kind is not None else thing_kind
+        elif targets and act != "move":
             kinds = tuple(self.kind(t, time) for t in targets)
             kind = kinds[0] if len(kinds) == 1 else kinds
         return self._start(act, kind, targets, signals,
                            int(R.get("explore_bout_acts")), None, False,
                            terrain, time)
 
-    def turn(self, terrain, time):
+    def turn(self, terrain, time, nearby=()):
         """
         Feel, look, decide and act once. Returns (seconds the turn took,
         whether the body slept through it).
         """
+        self._nearby = nearby
         least = R.get("turn_min_s")
         self.skills.sync(self.state(time))
         self.survey(time)

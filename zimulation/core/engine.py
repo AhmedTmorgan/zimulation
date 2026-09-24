@@ -100,10 +100,21 @@ class Engine:
         if not body.alive:
             return
         now = self.clock.now
-        spent, asleep = agent.turn(self.terrain, now)
+        nearby = [a for a in self.agents
+                  if a is not agent and a.actor.body.alive
+                  and a.actor.cell is agent.actor.cell]
+        spent, asleep = agent.turn(self.terrain, now, nearby=nearby)
         dt = max(1, int(round(spent)))
-        PHY.step(body, dt, self.air_k(agent.actor.cell, now),
-                 sleeping=asleep)
+        air_k = self.air_k(agent.actor.cell, now)
+        external_w = 0.0
+        if nearby:
+            loss = PHY.heat_loss_w(body, air_k)
+            if loss > 0.0:
+                frac = min(1.0, len(nearby)
+                           * R.get("proximity_warmth_fraction"))
+                external_w = loss * frac
+        PHY.step(body, dt, air_k, sleeping=asleep,
+                 external_heat_w=external_w)
         for item in agent.news:
             self._record(agent, now, item)
         agent.news = []
@@ -145,6 +156,12 @@ class Engine:
                                        d.alternatives.items()),
                                    "examined": d.examined,
                                    "stopped": d.stopped})
+        elif what == "social":
+            _, act_name, other_id, details = item
+            self.ledger.append(now, "social", location=where,
+                               participants=(agent.id, other_id),
+                               primitives=(act_name,),
+                               physical=details)
 
     # ---------------------------------------------------------------- run
     def run(self, until):

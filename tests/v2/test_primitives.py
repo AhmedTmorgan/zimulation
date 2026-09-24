@@ -63,7 +63,7 @@ def test_no_primitive_is_a_civilisation_level_action():
         encoding="utf-8"))) if isinstance(n, ast.FunctionDef)}
     assert not (names & banned), f"semantic shortcuts: {names & banned}"
     assert not (defined & banned), f"semantic functions: {defined & banned}"
-    assert len(PR.PRIMITIVES) == 22
+    assert len(PR.PRIMITIVES) == 24
 
 
 def test_no_primitive_creates_combustion_by_fiat():

@@ -49,3 +49,5 @@ jobs:
         run: python -m tests.v2.test_goals
       - name: Agent
         run: python -m tests.v2.test_agent
+      - name: Social
+        run: python -m tests.v2.test_social
