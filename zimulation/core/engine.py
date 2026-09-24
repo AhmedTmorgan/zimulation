@@ -40,7 +40,7 @@ class Engine:
     """One world, its clock, its organisms, and the record of them."""
 
     __slots__ = ("seed", "streams", "terrain", "ecology", "weather",
-                 "ledger", "clock", "agents", "rain", "today")
+                 "ledger", "clock", "agents", "rain", "today", "signals")
 
     def __init__(self, seed, size, start=0):
         self.seed = seed
@@ -51,6 +51,7 @@ class Engine:
         self.ledger = Ledger()
         self.clock = Scheduler(start)
         self.agents = []
+        self.signals = []
         self.rain = {}
         self.today = None
         self.clock.every(HOUR, self._hour, priority=PRIORITY_PHYSICS,
@@ -100,10 +101,14 @@ class Engine:
         if not body.alive:
             return
         now = self.clock.now
+        lifetime = R.get("signal_lifetime_s")
+        self.signals = [s for s in self.signals
+                        if now - s.time < lifetime]
         nearby = [a for a in self.agents
                   if a is not agent and a.actor.body.alive
                   and a.actor.cell is agent.actor.cell]
-        spent, asleep = agent.turn(self.terrain, now, nearby=nearby)
+        spent, asleep = agent.turn(self.terrain, now, nearby=nearby,
+                                   signals=self.signals)
         dt = max(1, int(round(spent)))
         air_k = self.air_k(agent.actor.cell, now)
         external_w = 0.0
@@ -162,6 +167,9 @@ class Engine:
                                participants=(agent.id, other_id),
                                primitives=(act_name,),
                                physical=details)
+        elif what == "signal":
+            sig = item[1]
+            self.signals.append(sig)
 
     # ---------------------------------------------------------------- run
     def run(self, until):

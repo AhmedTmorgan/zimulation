@@ -181,6 +181,30 @@ def sense_agent(other_body, other_cell, viewer_cell, terrain, time,
                    (other_cell.x, other_cell.y))
 
 
+def sense_signal(signal, viewer_cell, terrain, acuity, impairment, stream):
+    """
+    Perceive a sound another agent made. What arrives is a pitch and a
+    loudness, both noisy -- not the token the emitter chose or any meaning
+    it might carry. Whether a heard sound ever stands for anything is the
+    open question of communication, and nothing here decides it.
+    """
+    from ..world.space import audible_from
+    src = terrain.at(*signal.place)
+    if src is None or not audible_from(terrain, src, viewer_cell,
+                                       signal.loudness):
+        return None
+    scale = _noise_scale(acuity, impairment)
+    token_range = max(1.0, R.get("signal_token_range"))
+    return Percept(signal.time, SOUND, signal.emitter, {
+        "token_pitch": _unit(
+            signal.token / token_range
+            + stream.gauss(0.0, R.get("signal_pitch_noise") * scale)),
+        "loudness": _unit(
+            signal.loudness
+            + stream.gauss(0.0, R.get("signal_loudness_noise") * scale)),
+    }, signal.place)
+
+
 def sense_body(body, time, stream):
     """
     Interoception: the body's own signals.

@@ -173,6 +173,18 @@ class Agent:
             if kind not in counts and spots.get(here, (0, 0))[0] > 0:
                 self.places.note(kind, here, 0, time)
 
+    def _hear(self, terrain, time, signals):
+        """Listen to whatever sounds reach this body and learn from them."""
+        a = self.actor
+        acuity = sensory_acuity(a.body.age_years)
+        for sig in signals:
+            if sig.emitter == a.id:
+                continue
+            p = PC.sense_signal(sig, a.cell, terrain, acuity,
+                                a.body.impairment, self.see)
+            if p is not None:
+                self.concepts.learn(p.features, {}, time)
+
     # ---------------------------------------------------------------- acting
     def _act(self, act, targets, terrain, time):
         a = self.actor
@@ -190,6 +202,9 @@ class Agent:
             done = PR.give(a, targets[0], targets[1])
         elif act == "strike_body":
             done = PR.strike_body(a, targets[0], targets[1], self.knap)
+        elif act == "emit_signal":
+            done = PR.emit_signal(a, token=targets[0], loudness=1.0,
+                                  now=time)
         elif act == "move":
             done = PR.move(a, terrain, targets[0])
         else:
@@ -199,9 +214,11 @@ class Agent:
         self.acts += 1
         if act in ("give", "strike_body") and done.done:
             self.news.append(("social", act, targets[1].id, done.outcome))
+        if act == "emit_signal" and done.done:
+            self.news.append(("signal", done.outcome["signal"]))
         if act == "move":
             self.skills.begin(self.state(time))
-        elif act not in ("rest", "give", "strike_body"):
+        elif act not in ("rest", "give", "strike_body", "emit_signal"):
             roles = [self.kind(t, time) for t in targets]
             for sk in self.skills.record(SK.Step(act, roles), self.state(time),
                                          time, trace_id=time):
@@ -360,6 +377,7 @@ class Agent:
             options.append("strike")
         if held and nearby_actors:
             options += ["give", "strike_body"]
+        options.append("emit_signal")
         bias = R.get("consummatory_bias")
         if (bias > 0.0 and reach and drive in ("hunger", "thirst")
                 and s.random() < bias):
@@ -381,12 +399,16 @@ class Agent:
         elif act in ("give", "strike_body"):
             other = s.choice(nearby_actors)
             targets = [s.choice(held), other]
+        elif act == "emit_signal":
+            targets = [s.randrange(int(R.get("signal_token_range")))]
         else:
             targets = [s.choice(reach)]
         if act in ("give", "strike_body"):
             thing_kind = self.kind(targets[0], time)
             ag_kind = self.agent_kind(targets[1], time)
             kind = (thing_kind, ag_kind) if ag_kind is not None else thing_kind
+        elif act == "emit_signal":
+            kind = ("signal", targets[0])
         elif targets and act != "move":
             kinds = tuple(self.kind(t, time) for t in targets)
             kind = kinds[0] if len(kinds) == 1 else kinds
@@ -394,7 +416,7 @@ class Agent:
                            int(R.get("explore_bout_acts")), None, False,
                            terrain, time)
 
-    def turn(self, terrain, time, nearby=()):
+    def turn(self, terrain, time, nearby=(), signals=()):
         """
         Feel, look, decide and act once. Returns (seconds the turn took,
         whether the body slept through it).
@@ -403,6 +425,7 @@ class Agent:
         least = R.get("turn_min_s")
         self.skills.sync(self.state(time))
         self.survey(time)
+        self._hear(terrain, time, signals)
         signals = self.feel(time)
         drive, _ = self.goals.most_urgent(signals)
         if drive == "rest":
