@@ -1,0 +1,104 @@
+name: v2 Culture Zero pilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      seeds:
+        description: Independent deterministic seeds
+        required: true
+        default: "8"
+      first_seed:
+        description: First seed in the family
+        required: true
+        default: "0"
+      days:
+        description: Simulated days per seed
+        required: true
+        default: "1"
+      latitude:
+        description: Scenario map-centre latitude in degrees
+        required: true
+        default: "20"
+      founders:
+        description: Initial organisms per seed
+        required: true
+        default: "1"
+      consummatory_bias:
+        description: Hypothesis intervention; strict baseline is 0
+        required: true
+        default: "0"
+      learning:
+        description: Use learned remedies/planning
+        required: true
+        default: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  culture-zero:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify scientific contract before the experiment
+        run: |
+          python -m tests.v2.test_contract
+          python -m tests.v2.test_determinism
+          python -m tests.v2.test_perceptual_grounding
+          python -m tests.v2.test_experiment_protocol
+
+      - name: Record exact source and protocol metadata
+        run: |
+          mkdir -p results/source
+          git rev-parse HEAD > results/source/commit.txt
+          git status --porcelain > results/source/worktree.txt
+          git archive --format=tar.gz HEAD > results/source/source.tar.gz
+          sha256sum results/source/source.tar.gz > results/source/SHA256SUMS
+          cp docs/SCIENTIFIC_CONTRACT.md results/
+          cp docs/EXPERIMENT_PROTOCOL.md results/
+          cp docs/ODD.md results/
+          cp docs/PARAMETERS.md results/
+
+      - name: Run Culture Zero v1
+        shell: bash
+        run: |
+          extra=""
+          if [ "${{ inputs.learning }}" != "true" ]; then
+            extra="--no-learning"
+          fi
+          python -m experiments.v2.culture_zero_v1 \
+            --first-seed "${{ inputs.first_seed }}" \
+            --seeds "${{ inputs.seeds }}" \
+            --days "${{ inputs.days }}" \
+            --latitude "${{ inputs.latitude }}" \
+            --founders "${{ inputs.founders }}" \
+            --consummatory-bias "${{ inputs.consummatory_bias }}" \
+            $extra \
+            --out results/culture-zero-v1.json
+
+      - name: Save invocation
+        run: |
+          cat > results/invocation.txt <<'EOF'
+          protocol=culture-zero-v1
+          first_seed=${{ inputs.first_seed }}
+          seeds=${{ inputs.seeds }}
+          days=${{ inputs.days }}
+          latitude=${{ inputs.latitude }}
+          founders=${{ inputs.founders }}
+          consummatory_bias=${{ inputs.consummatory_bias }}
+          learning=${{ inputs.learning }}
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: culture-zero-v1-${{ github.run_id }}
+          path: results/
+          retention-days: 30
+          if-no-files-found: error
